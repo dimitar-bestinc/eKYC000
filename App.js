@@ -29,6 +29,7 @@ import {
 
 import MaskedView from '@react-native-community/masked-view'
 import { RNCamera, FaceDetector } from 'react-native-camera';
+import { AnimatedCircularProgress } from "react-native-circular-progress"
 
 const { width: windowWidth } = Dimensions.get("window")
  
@@ -83,7 +84,15 @@ const App: () => Node = () => {
           style={StyleSheet.absoluteFill}
           type={RNCamera.Constants.Type.front}
         >
-          
+          <AnimatedCircularProgress
+            style={styles.circularProgress}
+            size={PREVIEW_SIZE}
+            width={5}
+            backgroundWidth={7}
+            fill={0}
+            tintColor="#3485FF"
+            backgroundColor="#e8e8e8"
+          />
         </RNCamera>
       </MaskedView>
       <View style={styles.instructionsContainer}>
