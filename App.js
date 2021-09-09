@@ -43,6 +43,20 @@ const PREVIEW_RECT = {
 
 const Section = ({children, title}): Node => {
   const isDarkMode = useColorScheme() === 'dark';
+  const [hasPermission, setHasPermission] = React.useState(false)
+ 
+  React.useEffect(() => {
+    const requestPermissions = async () => {
+      const { status } = await Camera.requestPermissionsAsync()
+      setHasPermission(status === "granted")
+    }
+    requestPermissions()
+  }, [])
+  
+  if (hasPermission === false) {
+    return <Text>No access to camera</Text>
+  }
+  
   return (
     <View style={styles.sectionContainer}>
       <Text
