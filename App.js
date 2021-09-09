@@ -17,6 +17,7 @@ import {
   useColorScheme,
   View,
   Dimensions,
+  Alert,
 } from 'react-native';
 
 import {
@@ -56,7 +57,7 @@ const Section = ({children, title}): Node => {
   if (hasPermission === false) {
     return <Text>No access to camera</Text>
   }
-  
+
   return (
     <View style={styles.sectionContainer}>
       <Text
@@ -88,6 +89,10 @@ const App: () => Node = () => {
     backgroundColor: isDarkMode ? Colors.darker : Colors.lighter,
   };
 
+  const onFaceDetected = (res) => {
+    Alert.alert('Face', JSON.stringify(res));
+  }
+
   return (
     <SafeAreaView style={StyleSheet.absoluteFill}>
       <MaskedView
@@ -95,8 +100,19 @@ const App: () => Node = () => {
         maskElement={<View style={styles.mask} />}
       >
         <RNCamera
+          ref={ref => {
+            this.camera = ref;
+          }}
           style={StyleSheet.absoluteFill}
           type={RNCamera.Constants.Type.front}
+          captureAudio={false}
+          androidCameraPermissionOptions={{
+            title: 'Permission to use camera',
+            message: 'We need your permission to use your camera',
+            buttonPositive: 'Ok',
+            buttonNegative: 'Cancel',
+          }}
+          onFacesDetected={onFaceDetected}
         >
           <AnimatedCircularProgress
             style={styles.circularProgress}
