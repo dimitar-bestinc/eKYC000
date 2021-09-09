@@ -16,6 +16,7 @@ import {
   Text,
   useColorScheme,
   View,
+  Dimensions,
 } from 'react-native';
 
 import {
@@ -25,6 +26,18 @@ import {
   LearnMoreLinks,
   ReloadInstructions,
 } from 'react-native/Libraries/NewAppScreen';
+
+import MaskedView from '@react-native-community/masked-view'
+
+const { width: windowWidth } = Dimensions.get("window")
+ 
+const PREVIEW_SIZE = 325
+const PREVIEW_RECT = {
+  minX: (windowWidth - PREVIEW_SIZE) / 2,
+  minY: 50,
+  width: PREVIEW_SIZE,
+  height: PREVIEW_SIZE
+}
 
 const Section = ({children, title}): Node => {
   const isDarkMode = useColorScheme() === 'dark';
@@ -60,32 +73,15 @@ const App: () => Node = () => {
   };
 
   return (
-    <SafeAreaView style={backgroundStyle}>
-      <StatusBar barStyle={isDarkMode ? 'light-content' : 'dark-content'} />
-      <ScrollView
-        contentInsetAdjustmentBehavior="automatic"
-        style={backgroundStyle}>
-        <Header />
-        <View
-          style={{
-            backgroundColor: isDarkMode ? Colors.black : Colors.white,
-          }}>
-          <Section title="Step One">
-            Edit <Text style={styles.highlight}>App.js</Text> to change this
-            screen and then come back to see your edits.
-          </Section>
-          <Section title="See Your Changes">
-            <ReloadInstructions />
-          </Section>
-          <Section title="Debug">
-            <DebugInstructions />
-          </Section>
-          <Section title="Learn More">
-            Read the docs to discover what to do next:
-          </Section>
-          <LearnMoreLinks />
-        </View>
-      </ScrollView>
+    <SafeAreaView style={StyleSheet.absoluteFill}>
+      <MaskedView
+        style={StyleSheet.absoluteFill}
+        maskElement={<View style={styles.mask} />}
+      ></MaskedView>
+      <View style={styles.instructionsContainer}>
+        <Text style={styles.instructions}>Instructions</Text>
+        <Text style={styles.action}>Action to perform</Text>
+      </View>
     </SafeAreaView>
   );
 };
@@ -107,6 +103,39 @@ const styles = StyleSheet.create({
   highlight: {
     fontWeight: '700',
   },
+
+  mask: {
+    borderRadius: PREVIEW_SIZE / 2,
+    height: PREVIEW_SIZE,
+    width: PREVIEW_SIZE,
+    marginTop: PREVIEW_RECT.minY,
+    alignSelf: "center",
+    backgroundColor: "white"
+  },
+  circularProgress: {
+    width: PREVIEW_SIZE,
+    height: PREVIEW_SIZE,
+    marginTop: PREVIEW_RECT.minY,
+    marginLeft: PREVIEW_RECT.minX
+  },
+  instructions: {
+    fontSize: 20,
+    textAlign: "center",
+    top: 25,
+    position: "absolute"
+  },
+  instructionsContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    marginTop: PREVIEW_RECT.minY + PREVIEW_SIZE
+  },
+  action: {
+    fontSize: 24,
+    textAlign: "center",
+    fontWeight: "bold",
+    color: Colors.black
+  }
 });
 
 export default App;
