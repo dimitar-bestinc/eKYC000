@@ -28,6 +28,7 @@ import {
 } from 'react-native/Libraries/NewAppScreen';
 
 import MaskedView from '@react-native-community/masked-view'
+import { RNCamera, FaceDetector } from 'react-native-camera';
 
 const { width: windowWidth } = Dimensions.get("window")
  
@@ -77,7 +78,14 @@ const App: () => Node = () => {
       <MaskedView
         style={StyleSheet.absoluteFill}
         maskElement={<View style={styles.mask} />}
-      ></MaskedView>
+      >
+        <RNCamera
+          style={StyleSheet.absoluteFill}
+          type={RNCamera.Constants.Type.front}
+        >
+          
+        </RNCamera>
+      </MaskedView>
       <View style={styles.instructionsContainer}>
         <Text style={styles.instructions}>Instructions</Text>
         <Text style={styles.action}>Action to perform</Text>
