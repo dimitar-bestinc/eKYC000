@@ -37,7 +37,8 @@ import Svg, { Path, SvgProps } from "react-native-svg"
 const { width: windowWidth } = Dimensions.get("window")
 
 const PREVIEW_MARGIN_TOP = 50
-const PREVIEW_SIZE = 300
+const PREVIEW_SIZE = Math.floor(windowWidth - 20)
+
 // const PREVIEW_SIZE = 325
 const PREVIEW_RECT = {
   minX: (windowWidth - PREVIEW_SIZE) / 2,
@@ -374,7 +375,7 @@ const detectionReducer = (
 }
 
 const CameraPreviewMask = (props: SvgProps) => (
-  <Svg width={300} height={300} viewBox="0 0 300 300" fill="none" {...props}>
+  <Svg width={PREVIEW_SIZE} height={PREVIEW_SIZE} viewBox="0 0 300 300" fill="none" {...props}>
     <Path
       fillRule="evenodd"
       clipRule="evenodd"
