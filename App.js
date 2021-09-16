@@ -222,13 +222,13 @@ const App: () => Node = () => {
           dispatch({ type: "NEXT_DETECTION", value: null })
         }
         return
-      case "TURN_HEAD_LEFT":
+      case "TURN_HEAD_RIGHT":
         // console.log("TURN_HEAD_LEFT " + face.yawAngle)
         if (face.yawAngle <= detections.TURN_HEAD_LEFT.maxAngle) {
           dispatch({ type: "NEXT_DETECTION", value: null })
         }
         return
-      case "TURN_HEAD_RIGHT":
+      case "TURN_HEAD_LEFT":
         // console.log("TURN_HEAD_RIGHT " + face.yawAngle)
         if (face.yawAngle >= detections.TURN_HEAD_RIGHT.minAngle) {
           dispatch({ type: "NEXT_DETECTION", value: null })
