@@ -19,6 +19,7 @@ import {
   View,
   Dimensions,
   Alert,
+  Image,
 } from 'react-native';
 
 import {
@@ -103,6 +104,7 @@ const App: () => Node = () => {
   };
 
   const [hasPermission, setHasPermission] = useState(false)
+  const [selfie, setSelfie] = useState(null)
   const [state, dispatch] = useReducer(detectionReducer, initialState)
   const rollAngles = useRef([])
   const rect = useRef(null)
@@ -129,10 +131,34 @@ const App: () => Node = () => {
     })
   }
 
+  const takePicture = async () => {
+    if (this.camera) {
+      console.log("Camera detected")
+      const options = {
+        fixOrientation: true,
+        forceUpOrientation: true,
+        base64: true,
+        quality: 1,
+        exif: true,
+        orientation: RNCamera.Constants.ORIENTATION_UP,
+      };
+
+      const data = await this.camera.takePictureAsync(options);
+      setSelfie('data:image/jpg;base64,' + data.base64);
+    }
+  };
+
   const onFacesDetected = (result) => {
+    
+
     if (result.faces.length !== 1) {
       dispatch({ type: "FACE_DETECTED", value: "no" })
       return
+    }
+
+    if (!selfie) {
+      console.log("Take a selfie!");
+      takePicture();
     }
 
     const face = result.faces[0]
@@ -257,6 +283,15 @@ const App: () => Node = () => {
   //   return <Text>No access to camera</Text>
   // }
 
+  // if (selfie) {
+  //   return (
+  //     <Image
+  //       source={{ uri: selfie }}
+  //       style={styles.preview}
+  //     />
+  //     )
+  // }
+
   return (
     <View style={styles.container}>
       <View
@@ -293,8 +328,12 @@ const App: () => Node = () => {
       />
 
       <RNCamera
+        ref={ref => {
+          this.camera = ref;
+        }}
         style={styles.cameraPreview}
         type={RNCamera.Constants.Type.front}
+        flashMode={RNCamera.Constants.FlashMode.on}
         captureAudio={false}
         onFacesDetected={onFacesDetected}
         faceDetectionMode={RNCamera.Constants.FaceDetection.Mode.fast}
@@ -422,7 +461,12 @@ const styles = StyleSheet.create({
     textAlign: "center",
     marginTop: 10,
     fontWeight: "bold"
-  }
+  },
+
+  preview: {
+    height: PREVIEW_SIZE,
+    
+  },
 });
 
 export default App;
