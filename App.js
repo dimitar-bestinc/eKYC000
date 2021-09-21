@@ -105,6 +105,7 @@ const App: () => Node = () => {
 
   const [hasPermission, setHasPermission] = useState(false)
   const [selfie, setSelfie] = useState(null)
+  const [pictureTaking, setPictureTaking] = useState(false)
   const [state, dispatch] = useReducer(detectionReducer, initialState)
   const rollAngles = useRef([])
   const rect = useRef(null)
@@ -133,6 +134,7 @@ const App: () => Node = () => {
 
   const takePicture = async () => {
     if (this.camera) {
+      setPictureTaking(true)
       console.log("Camera detected")
       const options = {
         fixOrientation: true,
@@ -143,8 +145,13 @@ const App: () => Node = () => {
         orientation: RNCamera.Constants.ORIENTATION_UP,
       };
 
-      const data = await this.camera.takePictureAsync(options);
-      setSelfie('data:image/jpg;base64,' + data.base64);
+      try {
+        const data = await this.camera.takePictureAsync(options);
+        setSelfie('data:image/jpg;base64,' + data.base64);
+        setPictureTaking(false)
+      } catch {
+        setPictureTaking(false)
+      }
     }
   };
 
@@ -283,6 +290,7 @@ const App: () => Node = () => {
   //   return <Text>No access to camera</Text>
   // }
 
+  // // show picture
   // if (selfie) {
   //   return (
   //     <Image
@@ -335,7 +343,7 @@ const App: () => Node = () => {
         type={RNCamera.Constants.Type.front}
         flashMode={RNCamera.Constants.FlashMode.on}
         captureAudio={false}
-        onFacesDetected={onFacesDetected}
+        onFacesDetected={pictureTaking ? undefined : onFacesDetected}
         faceDetectionMode={RNCamera.Constants.FaceDetection.Mode.fast}
         faceDetectionLandmarks={RNCamera.Constants.FaceDetection.Landmarks.none}
         faceDetectionClassifications={RNCamera.Constants.FaceDetection.Classifications.all}
