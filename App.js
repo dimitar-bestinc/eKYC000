@@ -156,16 +156,10 @@ const App: () => Node = () => {
   };
 
   const onFacesDetected = (result) => {
-    
 
     if (result.faces.length !== 1) {
       dispatch({ type: "FACE_DETECTED", value: "no" })
       return
-    }
-
-    if (!selfie) {
-      console.log("Take a selfie!");
-      takePicture();
     }
 
     const face = result.faces[0]
@@ -205,6 +199,12 @@ const App: () => Node = () => {
     // drawFaceRect(face)
 
     if (!state.faceDetected) {
+
+      if (!selfie) {
+        console.log("Take a selfie!");
+        takePicture();
+      }
+
       dispatch({ type: "FACE_DETECTED", value: "yes" })
     }
 
