@@ -275,7 +275,8 @@ const Liveness = () => {
     if (state.processComplete) {
       setTimeout(() => {
         // delay so we can see progress fill aniamtion (500ms)
-        navigation.goBack()
+        // navigation.goBack()
+        navigation.navigate("IDScannerView")
       }, 750)
     }
   }, [state.processComplete])
@@ -335,7 +336,7 @@ const Liveness = () => {
         }}
         style={styles.cameraPreview}
         type={RNCamera.Constants.Type.front}
-        flashMode={RNCamera.Constants.FlashMode.on}
+        flashMode={RNCamera.Constants.FlashMode.auto}
         captureAudio={false}
         onFacesDetected={pictureTaking ? undefined : onFacesDetected}
         faceDetectionMode={RNCamera.Constants.FaceDetection.Mode.fast}
