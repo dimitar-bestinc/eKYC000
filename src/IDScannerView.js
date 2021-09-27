@@ -15,10 +15,15 @@ import {
 import SafeAreaView from 'react-native-safe-area-view'
 import {RNCamera} from 'react-native-camera'
 import BarcodeMask from 'react-native-barcode-mask'
+import base64 from 'react-native-base64'
 
-const IDScannerView = props => {
-  const [data, setData] = useState('')
+const IDScannerView = ({ route, navigation }) => {
+  const selfieURI = route.params && route.params.selfieURI
+
+  const [data, setData] = useState(null)
+  const [faceVerified, setFaceVerified] = useState(false)
   const [step, setStep] = useState(0)
+  // const [picture, setPicture] = useState(null)
 
   const cameraRef = useRef()
 
@@ -27,27 +32,86 @@ const IDScannerView = props => {
     flashMode: RNCamera.Constants.FlashMode.auto,
   })
 
-  const onBarCodeRead = scanResult => {
-    console.log(scanResult.type)
-    console.log(scanResult.data)
-    if (scanResult.type === 'org.iso.PDF417' || scanResult.type === 'PDF_417') {
-      if (scanResult.data != null) {
-        if (!data.includes(scanResult.data)) {
-          //data.push(scanResult.data)
-          setData(scanResult.data)
-          setStep(1)
-          console.log('onBarCodeRead call')
-        }
-      }
-      return
-    }
-    return
-  }
-
   const takePicture = async () => {
     const options = {quality: 0.5, base64: true}
-    const data = await cameraRef.current.takePictureAsync(options)
-    console.log(data.uri)
+    const picture = await cameraRef.current.takePictureAsync(options)
+    console.log(picture.uri)
+
+    if (picture) {
+      const username = '1myD4Y8iM8C4snbiJU4W0-2WvmtFFMkg'
+      const password = ''
+      const auth = 'Basic ' + base64.encode(username + ":" + password)
+      const formData1 = new FormData()
+      formData1.append('file', {
+        uri: picture.uri,
+        type: 'image/jpeg',
+        name: 'picture'
+      })
+      try {
+        responseJson1 = await ( await fetch('https://app.nanonets.com/api/v2/OCR/Model/6ad46e83-fb6d-4bfc-8e6d-714d74a62c16/LabelFile/', {
+          method: 'POST',
+          headers: {
+            'Authorization': auth
+          },
+          body: formData1
+        })).json()
+
+        const filePath = responseJson1.result[0].filepath
+        // console.log('origiinal', responseJson1.signed_urls[filePath].original)
+
+        if (responseJson1.result[0].prediction.length === 0) {
+          console.log("Prediction failed")
+        } else {
+          console.log("Prediction success")
+          setData(responseJson1.result)
+          setStep(1)
+
+          const cardImages = []
+
+          cardImages.push(responseJson1.signed_urls[filePath].original)
+          cardImages.push(responseJson1.signed_urls[filePath].acw_rotate_90)
+          cardImages.push(responseJson1.signed_urls[filePath].acw_rotate_180)
+          cardImages.push(responseJson1.signed_urls[filePath].acw_rotate_270)
+
+          // compare faces
+          if (selfieURI) {
+            const formData2 = new FormData()
+            formData1.append('selfie', {
+              uri: selfieURI,
+              type: 'image/jpeg',
+              name: 'selfie'
+            })
+            cardImages.forEach((image, i) => {
+              data.append("id_card[]", {
+                uri: image,
+                type: "image/jpeg",
+                name: `id_card_${i}.jpg`,
+              });
+            });
+
+            responseJson2 = await ( await fetch('http://3fb0-96-27-135-242.ngrok.io/api/v1/compare_faces', {
+              method: 'POST',
+              headers: {
+                Accept: "application/x-www-form-urlencoded",
+              },
+              body: formData
+            })).json()
+
+            responseJson2.forEach((res, idx) => {
+              if (res.result) {
+                setFaceVerified(true)
+              }
+            })
+          } else {
+            console.log('selfie not taken!')
+          }
+        }
+      } catch(err) {
+        console.log("error", err);
+      }
+    } else {
+      console.log("Error taking picture")
+    }
   }
 
   if (step === 0)
@@ -79,9 +143,9 @@ const IDScannerView = props => {
         <RNCamera
           ref={cameraRef}
           defaultTouchToFocus
-          flashMode={RNCamera.Constants.FlashMode.auto}
+          flashMode={RNCamera.Constants.FlashMode.on}
           mirrorImage={true}
-          onBarCodeRead={value => onBarCodeRead(value)}
+          fixOrientation={true}
           onFocusChanged={() => {}}
           captureAudio={false}
           onZoomChanged={() => {}}
@@ -90,12 +154,12 @@ const IDScannerView = props => {
             'We need your permission to use your camera phone'
           }
           style={styles.preview}
-          type={RNCamera.Constants.Type.front}>
+          type={RNCamera.Constants.Type.back}>
           <BarcodeMask
             backgroundColor="#ffffff"
             edgeColor="#7C7BC8"
             showAnimatedLine={false}
-            outerMaskOpacity={0.5}
+            outerMaskOpacity={0}
           />
           <Text style={styles.capture} onPress={takePicture}>[CAPTURE]</Text>
         </RNCamera>

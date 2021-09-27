@@ -141,7 +141,8 @@ const Liveness = () => {
 
       try {
         const data = await this.camera.takePictureAsync(options);
-        setSelfie('data:image/jpg;base64,' + data.base64);
+        // setSelfie('data:image/jpg;base64,' + data.base64);
+        setSelfie(data)
         setPictureTaking(false)
       } catch {
         setPictureTaking(false)
@@ -276,7 +277,9 @@ const Liveness = () => {
       setTimeout(() => {
         // delay so we can see progress fill aniamtion (500ms)
         // navigation.goBack()
-        navigation.navigate("IDScannerView")
+        navigation.navigate("IDScannerView", {
+          selfieURI: selfie.uri
+        })
       }, 750)
     }
   }, [state.processComplete])
