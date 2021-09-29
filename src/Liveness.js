@@ -12,6 +12,7 @@ import {
   Dimensions,
   Alert,
   Image,
+  Button,
 } from 'react-native';
 
 import {
@@ -68,7 +69,8 @@ const initialState = {
   detectionsList,
   currentDetectionIndex: 0,
   progressFill: 0,
-  processComplete: false
+  processComplete: false,
+  selfie: null,
 }
 
 function shuffle(array) {
@@ -97,7 +99,7 @@ const Liveness = () => {
     backgroundColor: isDarkMode ? Colors.darker : Colors.lighter,
   };
 
-  const [hasPermission, setHasPermission] = useState(false)
+  // const [hasPermission, setHasPermission] = useState(false)
   const [selfie, setSelfie] = useState(null)
   const [pictureTaking, setPictureTaking] = useState(false)
   const [state, dispatch] = useReducer(detectionReducer, initialState)
@@ -105,15 +107,15 @@ const Liveness = () => {
   const rect = useRef(null)
 
   useEffect(() => {
-    const requestPermissions = async () => {
-      const { status } = await RNCamera.requestPermissionsAsync()
-      setHasPermission(status === "granted")
-    }
+    // const requestPermissions = async () => {
+    //   const { status } = await RNCamera.requestPermissionsAsync()
+    //   setHasPermission(status === "granted")
+    // }
 
     // randomize detection list to prevent pre-recorded video spoofing
     shuffle(detectionsList)
-
-    requestPermissions()
+    console.log("selfie", selfie)
+    // requestPermissions()
   }, [])
 
   const drawFaceRect = (face) => {
@@ -127,6 +129,7 @@ const Liveness = () => {
   }
 
   const takePicture = async () => {
+    console.log("Button CLicked")
     if (this.camera) {
       setPictureTaking(true)
       console.log("Camera detected")
@@ -195,10 +198,10 @@ const Liveness = () => {
 
     if (!state.faceDetected) {
 
-      if (!selfie) {
-        console.log("Take a selfie!");
-        takePicture();
-      }
+      // if (!selfie) {
+      //   console.log("Take a selfie!");
+      //   takePicture();
+      // }
 
       dispatch({ type: "FACE_DETECTED", value: "yes" })
     }
@@ -206,6 +209,13 @@ const Liveness = () => {
     const detectionAction = state.detectionsList[state.currentDetectionIndex]
 
     switch (detectionAction) {
+      // case "TAKE_SELFIE":
+      //   if (selfie) {
+      //     dispatch({ type: "NEXT_DETECTION", value: null })
+      //   } else {
+      //     setPictureTaking(true)
+      //   }
+      //   return
       case "BLINK":
         // lower probabiltiy is when eyes are closed
         const leftEyeClosed =
@@ -277,26 +287,13 @@ const Liveness = () => {
       setTimeout(() => {
         // delay so we can see progress fill aniamtion (500ms)
         // navigation.goBack()
+        console.log("navigate to another page", selfie.uri)
         navigation.navigate("IDScannerView", {
           selfieURI: selfie.uri
         })
-      }, 750)
+      }, 800)
     }
   }, [state.processComplete])
-
-  // if (hasPermission === false) {
-  //   return <Text>No access to camera</Text>
-  // }
-
-  // // show picture
-  // if (selfie) {
-  //   return (
-  //     <Image
-  //       source={{ uri: selfie }}
-  //       style={styles.preview}
-  //     />
-  //     )
-  // }
 
   return (
     <View style={styles.container}>
@@ -341,7 +338,7 @@ const Liveness = () => {
         type={RNCamera.Constants.Type.front}
         flashMode={RNCamera.Constants.FlashMode.auto}
         captureAudio={false}
-        onFacesDetected={pictureTaking ? undefined : onFacesDetected}
+        onFacesDetected={selfie ? onFacesDetected : undefined}
         faceDetectionMode={RNCamera.Constants.FaceDetection.Mode.fast}
         faceDetectionLandmarks={RNCamera.Constants.FaceDetection.Landmarks.none}
         faceDetectionClassifications={RNCamera.Constants.FaceDetection.Classifications.all}
@@ -367,17 +364,30 @@ const Liveness = () => {
         }}
       />*/}
       <View style={styles.promptContainer}>
-        <Text style={styles.faceStatus}>
-          {!state.faceDetected && promptsText.noFaceDetected}
-        </Text>
-        <Text style={styles.actionPrompt}>
-          {state.faceDetected && promptsText.performActions}
-        </Text>
-        <Text style={styles.action}>
-          {state.faceDetected &&
-            detections[state.detectionsList[state.currentDetectionIndex]]
-              .promptText}
-        </Text>
+        {
+          selfie
+          ?
+          <View>
+            <Text style={styles.faceStatus}>
+              { !state.faceDetected && promptsText.noFaceDetected}
+            </Text>
+            <Text style={styles.actionPrompt}>
+              { state.faceDetected && promptsText.performActions}
+            </Text>
+            <Text style={styles.action}>
+              { state.faceDetected &&
+                detections[state.detectionsList[state.currentDetectionIndex]]
+                  .promptText}
+            </Text>    
+          </View>
+          :
+          <View style={styles.buttonWraper}>
+            <Button
+              title="Snap"
+              onPress={takePicture} 
+            />
+          </View>
+        }
       </View>
     </View>
   );
@@ -390,7 +400,7 @@ const detectionReducer = (
   const numDetections = state.detectionsList.length
   // +1 for face detection
   let newProgressFill = 0
-    
+  console.log(state.currentDetectionIndex)
   switch (action.type) {
     case "FACE_DETECTED":
 
@@ -401,7 +411,15 @@ const detectionReducer = (
         // Reset
         return initialState
       }
+    // case "TAKE_SELFIE":
+    //   newProgressFill = (100 / (numDetections + 1)) * (state.currentDetectionIndex + 2)
+    //   return {
+    //     ...state,
+    //     currentDetectionIndex: state.currentDetectionIndex + 1,
+    //     progressFill: newProgressFill
+    //   }
     case "NEXT_DETECTION":
+
       const nextIndex = state.currentDetectionIndex + 1
       if (nextIndex === numDetections) {
         // success
@@ -431,10 +449,7 @@ const CameraPreviewMask = (props: SvgProps) => (
 )
 
 const styles = StyleSheet.create({
-  actionPrompt: {
-    fontSize: 20,
-    textAlign: "center"
-  },
+  
   container: {
     flex: 1,
     backgroundColor: "#fff"
@@ -450,7 +465,17 @@ const styles = StyleSheet.create({
   faceStatus: {
     fontSize: 24,
     textAlign: "center",
-    marginTop: 10
+    marginTop: 10,
+  },
+  actionPrompt: {
+    fontSize: 20,
+    textAlign: "center"
+  },
+  action: {
+    fontSize: 24,
+    textAlign: "center",
+    marginTop: 10,
+    fontWeight: "bold",
   },
   cameraPreview: {
     flex: 1
@@ -462,16 +487,20 @@ const styles = StyleSheet.create({
     top: PREVIEW_MARGIN_TOP,
     alignSelf: "center"
   },
-  action: {
-    fontSize: 24,
-    textAlign: "center",
-    marginTop: 10,
-    fontWeight: "bold"
-  },
+  
 
   preview: {
     height: PREVIEW_SIZE,
     
+  },
+  
+  buttonWraper: {
+    marginTop: 50,
+    flexDirection: 'column',
+    justifyContent: 'center',
+    alignItems: 'center',
+    width: "100%",
+    height: 50
   },
 });
 
