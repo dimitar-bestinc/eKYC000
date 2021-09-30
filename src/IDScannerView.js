@@ -17,6 +17,8 @@ import {RNCamera} from 'react-native-camera'
 import BarcodeMask from 'react-native-barcode-mask'
 import base64 from 'react-native-base64'
 
+const { width: windowWidth } = Dimensions.get("window")
+
 const IDScannerView = ({ route, navigation }) => {
   let selfieURI = route.params && route.params.selfieURI
 
@@ -55,7 +57,7 @@ const IDScannerView = ({ route, navigation }) => {
         //   },
         //   body: formData1
         // })).json()
-        responseJson1 = {
+        const responseJson1 = {
           "message": "Success",
           "result": [
               {
@@ -321,7 +323,9 @@ const IDScannerView = ({ route, navigation }) => {
             backgroundColor="#ffffff"
             edgeColor="#7C7BC8"
             showAnimatedLine={false}
-            outerMaskOpacity={0.5}
+            outerMaskOpacity={0.8}
+            width={windowWidth - 20}
+            height={300}
           />
           <Text style={styles.capture} onPress={takePicture}>[CAPTURE]</Text>
         </RNCamera>
@@ -330,14 +334,18 @@ const IDScannerView = ({ route, navigation }) => {
   else if (step === 1) {
     console.log('stp 1 start now')
     return (
-      <SafeAreaView style={{flex: 1}}>
-        {
-          data.length > 0 ?
-            data.map((item, idx) => (<Text key={`ocr_text_` + idx}>{item.label + ` : ` + item.ocr_text}</Text>))
-            :
-            <Text>{`OCR failed`}</Text>    
-        }
-        <Text style={styles.capture} onPress={() => setStep(0)}>[Back To Camera]</Text>
+      <SafeAreaView style={{margin: 50,flexDirection: 'column', justifyContent: 'center', alignItems: 'center'}}>
+        <View style={{ borderWidth: 2, borderRadius: 20}}>
+          {
+            data.length > 0
+              ?
+              data.map((item, idx) => (<Text key={`ocr_text_` + idx} style={{ padding: 5 }}>{item.label + ` : ` + item.ocr_text}</Text>))
+              :
+              <Text>{`OCR failed`}</Text>   
+          }  
+        </View>
+        
+        <Text style={styles.back} onPress={() => setStep(0)}>[Back To Camera]</Text>
       </SafeAreaView>
     )
   }
@@ -393,7 +401,18 @@ const styles = {
     borderRadius: 5,
     color: '#000',
     padding: 10,
-    margin: 40
+    margin: 40,
+    backgroundColor: 'tomato'
+  },
+  back: {
+    flex: 0,
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 10,
+    margin: 10,
+    // width: 120,
+    backgroundColor: 'tomato',
   }
 }
 

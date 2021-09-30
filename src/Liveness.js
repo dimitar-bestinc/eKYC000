@@ -13,6 +13,8 @@ import {
   Alert,
   Image,
   Button,
+  Modal,
+  Pressable,
 } from 'react-native';
 
 import {
@@ -101,10 +103,12 @@ const Liveness = () => {
 
   // const [hasPermission, setHasPermission] = useState(false)
   const [selfie, setSelfie] = useState(null)
-  const [pictureTaking, setPictureTaking] = useState(false)
+  const [selfieTaken, setSelfieTaken] = useState(false)
   const [state, dispatch] = useReducer(detectionReducer, initialState)
   const rollAngles = useRef([])
   const rect = useRef(null)
+  const [modalVisible, setModalVisible] = useState(false);
+
 
   useEffect(() => {
     // const requestPermissions = async () => {
@@ -131,7 +135,6 @@ const Liveness = () => {
   const takePicture = async () => {
     console.log("Button CLicked")
     if (this.camera) {
-      setPictureTaking(true)
       console.log("Camera detected")
       const options = {
         fixOrientation: true,
@@ -145,13 +148,20 @@ const Liveness = () => {
       try {
         const data = await this.camera.takePictureAsync(options);
         // setSelfie('data:image/jpg;base64,' + data.base64);
+        console.log('selfie uri', data.uri)
         setSelfie(data)
-        setPictureTaking(false)
+        // setSelfieTaken(true)
+        setModalVisible(true)
       } catch {
-        setPictureTaking(false)
+        // setSelfieTaken(false)
       }
     }
-  };
+  }
+
+  const onModalConfirm = () => {
+    setSelfieTaken(true)
+    setModalVisible(false)
+  }
 
   const onFacesDetected = (result) => {
 
@@ -338,7 +348,7 @@ const Liveness = () => {
         type={RNCamera.Constants.Type.front}
         flashMode={RNCamera.Constants.FlashMode.auto}
         captureAudio={false}
-        onFacesDetected={selfie ? onFacesDetected : undefined}
+        onFacesDetected={selfieTaken ? onFacesDetected : undefined}
         faceDetectionMode={RNCamera.Constants.FaceDetection.Mode.fast}
         faceDetectionLandmarks={RNCamera.Constants.FaceDetection.Landmarks.none}
         faceDetectionClassifications={RNCamera.Constants.FaceDetection.Classifications.all}
@@ -365,7 +375,7 @@ const Liveness = () => {
       />*/}
       <View style={styles.promptContainer}>
         {
-          selfie
+          selfieTaken
           ?
           <View>
             <Text style={styles.faceStatus}>
@@ -389,6 +399,51 @@ const Liveness = () => {
           </View>
         }
       </View>
+
+      <Modal
+        animationType="slide"
+        transparent={true}
+        visible={modalVisible}
+        onRequestClose={() => {
+          Alert.alert("Modal has been closed.");
+          setModalVisible(!modalVisible);
+        }}
+      >
+        <View style={styles.centeredView}>
+          <View style={styles.modalView}>
+            <Text style={styles.modalText}>Are you sure to set this image as your selfie?</Text>
+            {
+              selfie &&
+              <Image
+                source={{uri: selfie.uri, isStatic:true}}
+                style={{width: 200, height: 200, margin: 10}}
+              />  
+            }
+            <View style={{ width: "100%", flexDirection: "row", justifyContent: "space-evenly", marginTop: 10 }}>
+              <Pressable
+                style={[styles.button, styles.buttonClose]}
+                onPress={() => setModalVisible(!modalVisible)}
+              >
+                <Text style={styles.textStyle}>No</Text>
+              </Pressable>
+              <Pressable
+                style={[styles.button, styles.buttonClose]}
+                onPress={onModalConfirm}
+              >
+                <Text style={styles.textStyle}>Yes</Text>
+              </Pressable>  
+            </View>
+            
+          </View>
+        </View>
+      </Modal>
+      {/*<Pressable
+        style={[styles.button, styles.buttonOpen]}
+        onPress={() => setModalVisible(true)}
+      >
+        <Text style={styles.textStyle}>Show Modal</Text>
+      </Pressable>*/}
+
     </View>
   );
 };
@@ -502,6 +557,48 @@ const styles = StyleSheet.create({
     width: "100%",
     height: 50
   },
+
+  centeredView: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    marginTop: 22
+  },
+  modalView: {
+    margin: 20,
+    backgroundColor: "white",
+    borderRadius: 20,
+    padding: 35,
+    alignItems: "center",
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 2
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 4,
+    elevation: 5
+  },
+  button: {
+    borderRadius: 20,
+    padding: 10,
+    elevation: 2
+  },
+  buttonOpen: {
+    backgroundColor: "#F194FF",
+  },
+  buttonClose: {
+    backgroundColor: "#2196F3",
+  },
+  textStyle: {
+    color: "white",
+    fontWeight: "bold",
+    textAlign: "center"
+  },
+  modalText: {
+    marginBottom: 15,
+    textAlign: "center"
+  }
 });
 
 export default Liveness;
