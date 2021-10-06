@@ -1,6 +1,5 @@
 import React from 'react';
-import type {Node} from 'react';
-import { useEffect, useReducer, useRef, useState } from "react"
+import { useEffect, useReducer, useRef, useState, useContext } from "react"
 import {
   SafeAreaView,
   ScrollView,
@@ -17,19 +16,11 @@ import {
   Pressable,
 } from 'react-native';
 
-import {
-  Colors,
-  DebugInstructions,
-  Header,
-  LearnMoreLinks,
-  ReloadInstructions,
-} from 'react-native/Libraries/NewAppScreen';
-
-// import MaskedView from '@react-native-community/masked-view'
 import { RNCamera, FaceDetector } from 'react-native-camera';
 import { AnimatedCircularProgress } from "react-native-circular-progress"
 import Svg, { Path, SvgProps } from "react-native-svg"
 import { useNavigation } from "@react-navigation/native"
+import { VerificationContext } from './context/VerificationContext'
 
 const { width: windowWidth } = Dimensions.get("window")
 
@@ -72,7 +63,6 @@ const initialState = {
   currentDetectionIndex: 0,
   progressFill: 0,
   processComplete: false,
-  selfie: null,
 }
 
 function shuffle(array) {
@@ -94,32 +84,15 @@ function shuffle(array) {
 }
 
 const Liveness = () => {
-  const isDarkMode = useColorScheme() === 'dark';
+  const [Verification, setVerification] = useContext(VerificationContext)
   const navigation = useNavigation()
-
-  const backgroundStyle = {
-    backgroundColor: isDarkMode ? Colors.darker : Colors.lighter,
-  };
-
-  // const [hasPermission, setHasPermission] = useState(false)
-  const [selfie, setSelfie] = useState(null)
-  const [selfieTaken, setSelfieTaken] = useState(false)
   const [state, dispatch] = useReducer(detectionReducer, initialState)
   const rollAngles = useRef([])
   const rect = useRef(null)
-  const [modalVisible, setModalVisible] = useState(false);
-
 
   useEffect(() => {
-    // const requestPermissions = async () => {
-    //   const { status } = await RNCamera.requestPermissionsAsync()
-    //   setHasPermission(status === "granted")
-    // }
-
     // randomize detection list to prevent pre-recorded video spoofing
     shuffle(detectionsList)
-    console.log("selfie", selfie)
-    // requestPermissions()
   }, [])
 
   const drawFaceRect = (face) => {
@@ -130,37 +103,6 @@ const Liveness = () => {
       top: face.bounds.origin.y,
       left: face.bounds.origin.x
     })
-  }
-
-  const takePicture = async () => {
-    console.log("Button CLicked")
-    if (this.camera) {
-      console.log("Camera detected")
-      const options = {
-        fixOrientation: true,
-        forceUpOrientation: true,
-        base64: true,
-        quality: 1,
-        exif: true,
-        orientation: RNCamera.Constants.ORIENTATION_UP,
-      };
-
-      try {
-        const data = await this.camera.takePictureAsync(options);
-        // setSelfie('data:image/jpg;base64,' + data.base64);
-        console.log('selfie uri', data.uri)
-        setSelfie(data)
-        // setSelfieTaken(true)
-        setModalVisible(true)
-      } catch {
-        // setSelfieTaken(false)
-      }
-    }
-  }
-
-  const onModalConfirm = () => {
-    setSelfieTaken(true)
-    setModalVisible(false)
   }
 
   const onFacesDetected = (result) => {
@@ -207,25 +149,12 @@ const Liveness = () => {
     // drawFaceRect(face)
 
     if (!state.faceDetected) {
-
-      // if (!selfie) {
-      //   console.log("Take a selfie!");
-      //   takePicture();
-      // }
-
       dispatch({ type: "FACE_DETECTED", value: "yes" })
     }
 
     const detectionAction = state.detectionsList[state.currentDetectionIndex]
 
     switch (detectionAction) {
-      // case "TAKE_SELFIE":
-      //   if (selfie) {
-      //     dispatch({ type: "NEXT_DETECTION", value: null })
-      //   } else {
-      //     setPictureTaking(true)
-      //   }
-      //   return
       case "BLINK":
         // lower probabiltiy is when eyes are closed
         const leftEyeClosed =
@@ -297,10 +226,13 @@ const Liveness = () => {
       setTimeout(() => {
         // delay so we can see progress fill aniamtion (500ms)
         // navigation.goBack()
-        console.log("navigate to another page", selfie.uri)
-        navigation.navigate("IDScannerView", {
-          selfieURI: selfie.uri
+        setVerification((prevVerification) => {
+          return {
+            ...prevVerification,
+            currentStep: 3,
+          }
         })
+        navigation.navigate("ProgressPage")
       }, 800)
     }
   }, [state.processComplete])
@@ -348,7 +280,7 @@ const Liveness = () => {
         type={RNCamera.Constants.Type.front}
         flashMode={RNCamera.Constants.FlashMode.auto}
         captureAudio={false}
-        onFacesDetected={selfieTaken ? onFacesDetected : undefined}
+        onFacesDetected={onFacesDetected}
         faceDetectionMode={RNCamera.Constants.FaceDetection.Mode.fast}
         faceDetectionLandmarks={RNCamera.Constants.FaceDetection.Landmarks.none}
         faceDetectionClassifications={RNCamera.Constants.FaceDetection.Classifications.all}
@@ -364,86 +296,22 @@ const Liveness = () => {
           fill={state.progressFill}
         />
       </RNCamera>
-      {/*<View
-        ref={rect}
-        style={{
-          position: "absolute",
-          borderWidth: 2,
-          borderColor: "pink",
-          zIndex: 10
-        }}
-      />*/}
+      
       <View style={styles.promptContainer}>
-        {
-          selfieTaken
-          ?
-          <View>
-            <Text style={styles.faceStatus}>
-              { !state.faceDetected && promptsText.noFaceDetected}
-            </Text>
-            <Text style={styles.actionPrompt}>
-              { state.faceDetected && promptsText.performActions}
-            </Text>
-            <Text style={styles.action}>
-              { state.faceDetected &&
-                detections[state.detectionsList[state.currentDetectionIndex]]
-                  .promptText}
-            </Text>    
-          </View>
-          :
-          <View style={styles.buttonWraper}>
-            <Button
-              title="Snap"
-              onPress={takePicture} 
-            />
-          </View>
-        }
-      </View>
-
-      <Modal
-        animationType="slide"
-        transparent={true}
-        visible={modalVisible}
-        onRequestClose={() => {
-          Alert.alert("Modal has been closed.");
-          setModalVisible(!modalVisible);
-        }}
-      >
-        <View style={styles.centeredView}>
-          <View style={styles.modalView}>
-            <Text style={styles.modalText}>Are you sure to set this image as your selfie?</Text>
-            {
-              selfie &&
-              <Image
-                source={{uri: selfie.uri, isStatic:true}}
-                style={{width: 200, height: 200, margin: 10}}
-              />  
-            }
-            <View style={{ width: "100%", flexDirection: "row", justifyContent: "space-evenly", marginTop: 10 }}>
-              <Pressable
-                style={[styles.button, styles.buttonClose]}
-                onPress={() => setModalVisible(!modalVisible)}
-              >
-                <Text style={styles.textStyle}>No</Text>
-              </Pressable>
-              <Pressable
-                style={[styles.button, styles.buttonClose]}
-                onPress={onModalConfirm}
-              >
-                <Text style={styles.textStyle}>Yes</Text>
-              </Pressable>  
-            </View>
-            
-          </View>
+        <View>
+          <Text style={styles.faceStatus}>
+            { !state.faceDetected && promptsText.noFaceDetected}
+          </Text>
+          <Text style={styles.actionPrompt}>
+            { state.faceDetected && promptsText.performActions}
+          </Text>
+          <Text style={styles.action}>
+            { state.faceDetected &&
+              detections[state.detectionsList[state.currentDetectionIndex]]
+                .promptText}
+          </Text>    
         </View>
-      </Modal>
-      {/*<Pressable
-        style={[styles.button, styles.buttonOpen]}
-        onPress={() => setModalVisible(true)}
-      >
-        <Text style={styles.textStyle}>Show Modal</Text>
-      </Pressable>*/}
-
+      </View>
     </View>
   );
 };
@@ -466,13 +334,6 @@ const detectionReducer = (
         // Reset
         return initialState
       }
-    // case "TAKE_SELFIE":
-    //   newProgressFill = (100 / (numDetections + 1)) * (state.currentDetectionIndex + 2)
-    //   return {
-    //     ...state,
-    //     currentDetectionIndex: state.currentDetectionIndex + 1,
-    //     progressFill: newProgressFill
-    //   }
     case "NEXT_DETECTION":
 
       const nextIndex = state.currentDetectionIndex + 1

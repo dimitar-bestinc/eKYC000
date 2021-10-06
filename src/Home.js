@@ -7,11 +7,11 @@ import SelfieSvg from "./SelfieSvg"
 
 const Home = () => {
   const navigation = useNavigation()
-  const startDetection = () => navigation.navigate("Detection")
+  const startDetection = () => navigation.navigate("ProgressPage")
 
   return (
     <SafeAreaView style={styles.container}>
-      <Text style={styles.title}>Liveness Detection</Text>
+      <Text style={styles.title}>Know Your Customer</Text>
       <View style={styles.bottomContainer}>
         <SelfieSvg size={300} style={styles.selfieSvg} />
         <TouchableOpacity style={styles.btn} onPress={startDetection}>
