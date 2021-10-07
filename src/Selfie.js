@@ -27,11 +27,25 @@ import {
 
 import { RNCamera, FaceDetector } from 'react-native-camera';
 import { AnimatedCircularProgress } from "react-native-circular-progress"
-import Svg, { Path, SvgProps } from "react-native-svg"
+import Svg, { Path, SvgProps, Defs, Mask, Rect, Circle } from "react-native-svg"
 import { useNavigation } from "@react-navigation/native"
 import { VerificationContext } from './context/VerificationContext'
 
 const { width: windowWidth } = Dimensions.get("window")
+
+const CircleMask = () => {
+  return (
+    <Svg height="100%" width="100%">
+      <Defs>
+        <Mask id="mask" x="0" y="0" height="100%" width="100%">
+          <Rect height="100%" width="100%" fill="#fff" />
+          <Circle r="35%" cx="50%" cy="35%" fill="black"/>
+        </Mask>
+      </Defs>
+      <Rect height="100%" width="100%" fill="rgba(0, 0, 0, 0.8)" mask="url(#mask)" fill-opacity="0" />
+    </Svg>
+  );
+};
 
 const Selfie = () => {
   const navigation = useNavigation()
@@ -93,6 +107,7 @@ const Selfie = () => {
         flashMode={RNCamera.Constants.FlashMode.auto}
         captureAudio={false}
       >
+        <CircleMask />
       </RNCamera>
       <TouchableHighlight 
         style={styles.actionButton}
