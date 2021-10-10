@@ -1,13 +1,13 @@
-import * as React from "react"
-import { useNavigation } from "@react-navigation/native"
-import { View, Text, StyleSheet } from "react-native"
+import * as React from 'react';
+import {useNavigation} from '@react-navigation/native';
+import {View, Text, StyleSheet} from 'react-native';
 import SafeAreaView from 'react-native-safe-area-view';
-import { TouchableOpacity } from "react-native-gesture-handler"
-import SelfieSvg from "./SelfieSvg"
+import {TouchableOpacity} from 'react-native-gesture-handler';
+import SelfieSvg from './SelfieSvg';
 
 const Home = () => {
-  const navigation = useNavigation()
-  const startDetection = () => navigation.navigate("ProgressPage")
+  const navigation = useNavigation();
+  const startDetection = () => navigation.navigate('ProgressPage');
 
   return (
     <SafeAreaView style={styles.container}>
@@ -19,44 +19,44 @@ const Home = () => {
         </TouchableOpacity>
       </View>
     </SafeAreaView>
-  )
-}
+  );
+};
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#f8f8f8"
+    backgroundColor: '#f8f8f8',
   },
   title: {
     fontSize: 64,
-    fontWeight: "bold",
-    alignSelf: "center",
+    fontWeight: 'bold',
+    alignSelf: 'center',
     marginTop: 50,
-    color: "#1e293b",
-    zIndex: 1
+    color: '#1e293b',
+    zIndex: 1,
   },
   selfieSvg: {
-    position: "absolute",
-    bottom: 58
+    position: 'absolute',
+    bottom: 58,
   },
   bottomContainer: {
     flex: 1,
-    justifyContent: "flex-end",
-    alignItems: "center",
-    marginBottom: 25
+    justifyContent: 'flex-end',
+    alignItems: 'center',
+    marginBottom: 25,
   },
   btn: {
     width: 300,
     height: 60,
     borderRadius: 5,
-    justifyContent: "center",
-    backgroundColor: "#334155"
+    justifyContent: 'center',
+    backgroundColor: '#334155',
   },
   btnText: {
     fontSize: 24,
-    textAlign: "center",
-    color: "white"
-  }
-})
+    textAlign: 'center',
+    color: 'white',
+  },
+});
 
-export default Home
+export default Home;

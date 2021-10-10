@@ -1,17 +1,16 @@
-import * as React from "react"
-import Svg, { SvgProps, G, Path, Defs, ClipPath } from "react-native-svg"
+import * as React from 'react';
+import Svg, {G, Path, Defs, ClipPath} from 'react-native-svg';
 
 // Art by
 // https://undraw.co/
-export default function SelfieSvg(props: SvgProps & { size: number }) {
+export default function SelfieSvg(props) {
   return (
     <Svg
       width={props.size * 1.23}
       height={props.size}
       viewBox="0 0 837 678"
       fill="none"
-      {...props}
-    >
+      {...props}>
       <G clipPath="url(#prefix__clip0)">
         <Path
           d="M326.236 671.863l510.729-257.565L628.031 0 98.794 242.164l227.442 429.699z"
@@ -90,5 +89,5 @@ export default function SelfieSvg(props: SvgProps & { size: number }) {
         </ClipPath>
       </Defs>
     </Svg>
-  )
+  );
 }
