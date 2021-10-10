@@ -1,19 +1,18 @@
 import React from 'react';
-import {useContext} from 'react';
+import {useContext, useState} from 'react';
 import {
   StyleSheet,
   Text,
   View,
-  Dimensions,
   TouchableHighlight,
+  ActivityIndicator,
 } from 'react-native';
 
 import {RNCamera} from 'react-native-camera';
 import Svg, {Defs, Mask, Rect, Circle} from 'react-native-svg';
 import {useNavigation} from '@react-navigation/native';
 import {VerificationContext} from './context/VerificationContext';
-
-const {width: windowWidth} = Dimensions.get('window');
+import {faceRecognitionService} from './services/face_recognition.service';
 
 const CircleMask = () => {
   return (
@@ -39,12 +38,13 @@ const Selfie = () => {
   const navigation = useNavigation();
   const [Verification, setVerification] = useContext(VerificationContext);
   const {currentStep} = Verification;
+  const [isLoading, setIsLoading] = useState(false);
   console.log('Verification Selfie', currentStep);
+  let camera = null;
 
   const takePicture = async () => {
-    console.log('Button CLicked');
-    if (this.camera) {
-      console.log('Camera detected');
+    if (camera) {
+      console.log('Take picture');
       const options = {
         fixOrientation: true,
         forceUpOrientation: true,
@@ -54,52 +54,110 @@ const Selfie = () => {
         orientation: RNCamera.Constants.ORIENTATION_UP,
       };
 
-      try {
-        const data = await this.camera.takePictureAsync(options);
+      return await camera.takePictureAsync(options);
+    }
+  };
+
+  const checkSelfie = () => {
+    takePicture()
+      .then(data => {
+        setIsLoading(true);
+        return faceRecognitionService
+          .detect_faces(data.uri)
+          .then(json => {
+            console.log(json);
+            const res = json;
+            if (res[0].coordinates.length === 0) {
+              console.log('face detected');
+              navigation.navigate('Liveness');
+              setVerification(prevVerification => {
+                return {
+                  ...prevVerification,
+                  currentStep: 1,
+                  selfie: data,
+                  selfieVerified: true,
+                };
+              });
+            } else {
+              console.log('no face detected');
+              navigation.navigate('ProgressPage');
+              setVerification(prevVerification => {
+                return {
+                  ...prevVerification,
+                  currentStep: 1,
+                  selfie: data,
+                  selfieVerified: false,
+                };
+              });
+            }
+
+            return Promise.resolve();
+          })
+          .catch(e => {
+            console.log(e);
+            navigation.navigate('ProgressPage');
+            setVerification(prevVerification => {
+              return {
+                ...prevVerification,
+                currentStep: 1,
+                selfie: data,
+                selfieVerified: false,
+              };
+            });
+          })
+          .finally(() => {
+            setIsLoading(false);
+          });
+      })
+      .catch(e => {
+        console.log('Could not take picture');
+        navigation.navigate('ProgressPage');
         setVerification(prevVerification => {
           return {
             ...prevVerification,
             currentStep: 1,
-            selfie: data,
+            selfie: null,
+            selfieVerified: false,
           };
         });
-      } catch (e) {
-        console.log(e);
-      } finally {
-        navigation.navigate('ProgressPage');
-      }
-    }
+      });
   };
 
   return (
     <>
-      <View style={styles.container}>
-        <RNCamera
-          ref={ref => {
-            this.camera = ref;
-          }}
-          style={styles.cameraPreview}
-          androidCameraPermissionOptions={{
-            title: 'Permission to use camera',
-            message: 'We need your permission to use your camera',
-            buttonPositive: 'Ok',
-            buttonNegative: 'Cancel',
-          }}
-          androidRecordAudioPermissionOptions={{
-            title: 'Permission to use audio recording',
-            message: 'We need your permission to use your audio',
-            buttonPositive: 'Ok',
-            buttonNegative: 'Cancel',
-          }}
-          type={RNCamera.Constants.Type.front}
-          flashMode={RNCamera.Constants.FlashMode.auto}
-          captureAudio={false}>
-          <CircleMask />
-        </RNCamera>
-        <TouchableHighlight style={styles.actionButton} onPress={takePicture}>
-          <Text>Snap</Text>
-        </TouchableHighlight>
-      </View>
+      {isLoading ? (
+        <View style={styles.activityContainer}>
+          <ActivityIndicator size="large" />
+        </View>
+      ) : (
+        <View style={styles.container}>
+          <RNCamera
+            ref={ref => {
+              camera = ref;
+            }}
+            style={styles.cameraPreview}
+            androidCameraPermissionOptions={{
+              title: 'Permission to use camera',
+              message: 'We need your permission to use your camera',
+              buttonPositive: 'Ok',
+              buttonNegative: 'Cancel',
+            }}
+            androidRecordAudioPermissionOptions={{
+              title: 'Permission to use audio recording',
+              message: 'We need your permission to use your audio',
+              buttonPositive: 'Ok',
+              buttonNegative: 'Cancel',
+            }}
+            type={RNCamera.Constants.Type.front}
+            flashMode={RNCamera.Constants.FlashMode.auto}
+            captureAudio={false}>
+            <CircleMask />
+          </RNCamera>
+          <TouchableHighlight style={styles.actionButton} onPress={checkSelfie}>
+            <Text>Snap</Text>
+          </TouchableHighlight>
+        </View>
+      )}
     </>
   );
 };
@@ -122,6 +180,12 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: 'blue',
     flex: 1,
+  },
+  activityContainer: {
+    flex: 1,
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
 });
 

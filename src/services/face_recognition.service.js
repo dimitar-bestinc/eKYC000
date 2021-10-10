@@ -1,4 +1,4 @@
-export const userService = {
+export const faceRecognitionService = {
   detect_faces,
   compare_faces,
 };

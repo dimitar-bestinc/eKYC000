@@ -15,6 +15,8 @@ const App = () => {
     <VerificationProvider>
       <NavigationContainer>
         <Stack.Navigator>
+          <Stack.Screen name="Selfie" component={Selfie} />
+
           <Stack.Screen name="IDScannerView" component={IDScannerView} />
 
           <Stack.Screen
@@ -25,7 +27,6 @@ const App = () => {
 
           <Stack.Screen name="Liveness" component={Liveness} />
           <Stack.Screen name="ProgressPage" component={ProgressPage} />
-          <Stack.Screen name="Selfie" component={Selfie} />
         </Stack.Navigator>
       </NavigationContainer>
     </VerificationProvider>

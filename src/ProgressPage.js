@@ -12,102 +12,70 @@ import {ProgressSteps, ProgressStep} from 'react-native-progress-steps';
 import SelfieSvg from './SelfieSvg';
 import {useNavigation} from '@react-navigation/native';
 import {VerificationContext} from './context/VerificationContext';
-
-const renderStepThreeContainer = () => {
-  return (
-    <View style={styles.middleContainer}>
-      <View style={styles.sector}>
-        <Text style={{fontSize: 22}}>This is step three</Text>
-      </View>
-    </View>
-  );
-};
+import {faceRecognitionService} from './services/face_recognition.service';
 
 const ProgressPage = () => {
   const navigation = useNavigation();
   const [Verification, setVerification] = useContext(VerificationContext);
-  const {selfie, currentStep, frontIdPicture} = Verification;
+  const {selfie, selfieVerified, currentStep, frontIdPicture} = Verification;
 
-  const [isLoading, setIsLoading] = useState(false);
-  const [faceDetected, setFaceDetected] = useState('unknown');
+  // const [isLoading, setIsLoading] = useState(false);
+  // const [faceDetected, setFaceDetected] = useState(false);
 
-  const retakeSelfie = () => {
-    setFaceDetected('unknown');
-    navigation.navigate('Selfie');
-  };
+  // const submitSelfie = async () => {
+  //   setIsLoading(true);
+  //   faceRecognitionService
+  //     .detect_faces(selfie.uri)
+  //     .then(json => {
+  //       console.log(json);
+  //       const res = json;
+  //       if (res[0].coordinates.length === 0) {
+  //         console.log('face detected');
 
-  const submitSelfie = async () => {
-    try {
-      await verifySelfie();
-    } catch (e) {
-    } finally {
-    }
-  };
-
-  const verifySelfie = async () => {
-    const formData = new FormData();
-
-    formData.append('faces', {
-      uri: selfie.uri,
-      type: 'image/jpeg',
-      name: 'picture',
-    });
-
-    try {
-      setIsLoading(true);
-      const response = await (
-        await fetch('http://d745-96-27-135-242.ngrok.io/api/v1/detect_faces', {
-          method: 'POST',
-          body: formData,
-        })
-      ).json();
-
-      console.log('response', response);
-      if (response[0].coordinates.length !== 0) {
-        setFaceDetected('no');
-      } else {
-        setFaceDetected('yes');
-        setVerification(prevVerification => {
-          return {
-            ...prevVerification,
-            currentStep: 2,
-            selfieVerified: true,
-          };
-        });
-        navigation.navigate('Liveness');
-      }
-    } catch (err) {
-      throw err;
-    } finally {
-      navigation.navigate('Liveness');
-      setFaceDetected('yes');
-      setVerification(prevVerification => {
-        return {
-          ...prevVerification,
-          selfieVerified: true,
-        };
-      });
-      setIsLoading(false);
-    }
-  };
+  //         navigation.navigate('Liveness');
+  //         setFaceDetected(true);
+  //         setVerification(prevVerification => {
+  //           return {
+  //             ...prevVerification,
+  //             selfieVerified: true,
+  //           };
+  //         });
+  //       } else {
+  //         console.log('no face detected');
+  //         setFaceDetected(false);
+  //         setVerification(prevVerification => {
+  //           return {
+  //             ...prevVerification,
+  //             selfieVerified: false,
+  //           };
+  //         });
+  //       }
+  //     })
+  //     .catch(e => {
+  //       console.log(e);
+  //     })
+  //     .finally(() => {
+  //       setIsLoading(false);
+  //     });
+  // };
 
   const renderMiddleContainer = () => {
     if (currentStep === 0) {
       return (
         <View style={styles.middleContainer}>
           <View style={styles.sector}>
-            <Text style={{fontSize: 22}}>Your Selfie</Text>
+            <Text style={styles.font22}>Your Selfie</Text>
           </View>
           <View style={styles.sector}>
             <SelfieSvg size={100} />
           </View>
           <View style={styles.sector}>
-            <Text style={{fontSize: 14}}>
+            <Text style={styles.font18}>
               Next, we will ask you to take a few selfies to compare your ID
             </Text>
           </View>
           <View style={styles.sector}>
-            <Text style={{fontSize: 14}}>
+            <Text style={styles.font18}>
               Start by looking directly at the camera
             </Text>
           </View>
@@ -118,7 +86,7 @@ const ProgressPage = () => {
             />
           </View>
           <View style={styles.sector}>
-            <Text style={{fontSize: 14}}>Why do we ask for this?</Text>
+            <Text style={styles.font18}>Why do we ask for this?</Text>
           </View>
         </View>
       );
@@ -136,38 +104,23 @@ const ProgressPage = () => {
                 style={{width: selfieWidth, height: selfieHeight}}
               />
             ) : (
-              <Text style={{fontSize: 22}}>No picture taken</Text>
+              <Text style={styles.font22}>No picture taken</Text>
             )}
           </View>
-          <View
-            style={{
-              flex: 1,
-              alignItems: 'center',
-              justifyContent: 'flex-start',
-            }}>
+          <View style={styles.sector}>
             <View>
-              {faceDetected === 'no' && (
-                <Text style={{fontSize: 18, padding: 10, color: 'red'}}>
+              {!selfieVerified && (
+                <Text style={styles.cautionFont}>
                   No face detected, retake the picture
                 </Text>
               )}
             </View>
-            <View
-              style={{
-                flex: 1,
-                flexDirection: 'row',
-                justifyContent: 'space-between',
-                alignItems: 'flex-start',
-                alignSelf: 'stretch',
-                padding: 10,
-              }}>
+            <View style={styles.sector}>
               <View>
-                <Button title="Retake selfie" onPress={retakeSelfie} />
-              </View>
-              <View>
-                {selfie && (
-                  <Button title="Submit selfie" onPress={submitSelfie} />
-                )}
+                <Button
+                  title="Retake selfie"
+                  onPress={() => navigation.navigate('Selfie')}
+                />
               </View>
             </View>
           </View>
@@ -177,7 +130,7 @@ const ProgressPage = () => {
       return (
         <View style={styles.middleContainer}>
           <View style={styles.sector}>
-            <Text style={{fontSize: 22}}>Do liveness check now</Text>
+            <Text style={styles.font22}>Do liveness check now</Text>
           </View>
           <View style={styles.sector}>
             <Button
@@ -194,7 +147,6 @@ const ProgressPage = () => {
         IdHeight * (frontIdPicture.width / frontIdPicture.height);
 
       const retakeIdFront = () => {
-        setFaceDetected('unknown');
         navigation.navigate('IDScannerView');
       };
 
@@ -205,7 +157,7 @@ const ProgressPage = () => {
       return (
         <View style={styles.middleContainer}>
           <View style={styles.sector}>
-            <Text style={{fontSize: 22}}>Scan your ID documentation</Text>
+            <Text style={styles.font22}>Scan your ID documentation</Text>
           </View>
           {frontIdPicture ? (
             <View style={styles.sector}>
@@ -229,8 +181,8 @@ const ProgressPage = () => {
               justifyContent: 'flex-start',
             }}>
             <View>
-              {faceDetected === 'no' && (
-                <Text style={{fontSize: 18, padding: 10, color: 'red'}}>
+              {!selfieVerified && (
+                <Text style={styles.cautionFont}>
                   No face detected, retake the picture
                 </Text>
               )}
@@ -262,7 +214,7 @@ const ProgressPage = () => {
 
   return (
     <View style={styles.container}>
-      {isLoading ? (
+      {false ? (
         <View
           style={{
             flex: 1,
@@ -275,30 +227,30 @@ const ProgressPage = () => {
       ) : (
         <>
           <View style={styles.topContainer}>
-            <View style={{paddingTop: 10}}>
-              <Text style={{fontSize: 22}}>ID Verification Steps</Text>
+            <View style={styles.paddingTop10}>
+              <Text style={styles.font22}>ID Verification Steps</Text>
             </View>
 
             <ProgressSteps activeStep={currentStep}>
               <ProgressStep
                 label="Take Selfie"
-                nextBtnTextStyle={{display: 'none'}}
-                previousBtnTextStyle={{display: 'none'}}
+                nextBtnTextStyle={styles.noDisplay}
+                previousBtnTextStyle={styles.noDisplay}
               />
               <ProgressStep
-                label="Verify Selfie"
-                nextBtnTextStyle={{display: 'none'}}
-                previousBtnTextStyle={{display: 'none'}}
+                label="Check Selfie"
+                nextBtnTextStyle={styles.noDisplay}
+                previousBtnTextStyle={styles.noDisplay}
               />
               <ProgressStep
                 label="Check Liveness"
-                nextBtnTextStyle={{display: 'none'}}
-                previousBtnTextStyle={{display: 'none'}}
+                nextBtnTextStyle={styles.noDisplay}
+                previousBtnTextStyle={styles.noDisplay}
               />
               <ProgressStep
                 label="Scan ID"
-                nextBtnTextStyle={{display: 'none'}}
-                previousBtnTextStyle={{display: 'none'}}
+                nextBtnTextStyle={styles.noDisplay}
+                previousBtnTextStyle={styles.noDisplay}
               />
             </ProgressSteps>
           </View>
@@ -327,6 +279,25 @@ const styles = StyleSheet.create({
   sector: {
     padding: 10,
     alignItems: 'center',
+    justifyContent: 'center',
+    flex: 1,
+  },
+  paddingTop10: {
+    paddingTop: 10,
+  },
+  font22: {
+    fontSize: 22,
+  },
+  font18: {
+    fontSize: 18,
+  },
+  noDisplay: {
+    display: 'none',
+  },
+  cautionFont: {
+    fontSize: 18,
+    padding: 10,
+    color: 'red',
   },
 });
 
