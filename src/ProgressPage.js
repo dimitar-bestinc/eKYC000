@@ -9,7 +9,7 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import {ProgressSteps, ProgressStep} from 'react-native-progress-steps';
-import SelfieSvg from './SelfieSvg';
+import SelfieSvg from './svg/SelfieSvg';
 import {useNavigation} from '@react-navigation/native';
 import {VerificationContext} from './context/VerificationContext';
 import {faceRecognitionService} from './services/face_recognition.service';

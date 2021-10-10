@@ -3,7 +3,7 @@ import {useNavigation} from '@react-navigation/native';
 import {View, Text, StyleSheet} from 'react-native';
 import SafeAreaView from 'react-native-safe-area-view';
 import {TouchableOpacity} from 'react-native-gesture-handler';
-import SelfieSvg from './SelfieSvg';
+import SelfieSvg from './svg/SelfieSvg';
 
 const Home = () => {
   const navigation = useNavigation();
