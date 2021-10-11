@@ -1,5 +1,5 @@
 import React, {useRef} from 'react';
-import {useContext, useState, useEffect} from 'react';
+import {useContext, useState} from 'react';
 import {
   StyleSheet,
   Text,
@@ -80,7 +80,7 @@ const SelfiePage = () => {
               });
             } else {
               console.log('no face detected');
-              navigation.navigate('LivenessPage');
+              navigation.navigate('ProgressPage');
               setVerification(prevVerification => {
                 return {
                   ...prevVerification,
