@@ -1,5 +1,5 @@
 import React from 'react';
-import {useState, useContext} from 'react';
+import {useContext} from 'react';
 import {
   StyleSheet,
   Text,
@@ -12,52 +12,18 @@ import {ProgressSteps, ProgressStep} from 'react-native-progress-steps';
 import SelfieSvg from './svg/SelfieSvg';
 import {useNavigation} from '@react-navigation/native';
 import {VerificationContext} from './context/VerificationContext';
-import {faceRecognitionService} from './services/face_recognition.service';
 
 const ProgressPage = () => {
   const navigation = useNavigation();
   const [Verification, setVerification] = useContext(VerificationContext);
-  const {selfie, selfieVerified, currentStep, frontIdPicture} = Verification;
-
-  // const [isLoading, setIsLoading] = useState(false);
-  // const [faceDetected, setFaceDetected] = useState(false);
-
-  // const submitSelfie = async () => {
-  //   setIsLoading(true);
-  //   faceRecognitionService
-  //     .detect_faces(selfie.uri)
-  //     .then(json => {
-  //       console.log(json);
-  //       const res = json;
-  //       if (res[0].coordinates.length === 0) {
-  //         console.log('face detected');
-
-  //         navigation.navigate('Liveness');
-  //         setFaceDetected(true);
-  //         setVerification(prevVerification => {
-  //           return {
-  //             ...prevVerification,
-  //             selfieVerified: true,
-  //           };
-  //         });
-  //       } else {
-  //         console.log('no face detected');
-  //         setFaceDetected(false);
-  //         setVerification(prevVerification => {
-  //           return {
-  //             ...prevVerification,
-  //             selfieVerified: false,
-  //           };
-  //         });
-  //       }
-  //     })
-  //     .catch(e => {
-  //       console.log(e);
-  //     })
-  //     .finally(() => {
-  //       setIsLoading(false);
-  //     });
-  // };
+  const {
+    selfie,
+    selfieVerified,
+    currentStep,
+    frontIdPicture,
+    frontIdPictureVerified,
+    frontIdOCR,
+  } = Verification;
 
   const renderMiddleContainer = () => {
     if (currentStep === 0) {
@@ -82,7 +48,7 @@ const ProgressPage = () => {
           <View style={styles.sector}>
             <Button
               title="Use my camera"
-              onPress={() => navigation.navigate('Selfie')}
+              onPress={() => navigation.navigate('SelfiePage')}
             />
           </View>
           <View style={styles.sector}>
@@ -119,7 +85,7 @@ const ProgressPage = () => {
               <View>
                 <Button
                   title="Retake selfie"
-                  onPress={() => navigation.navigate('Selfie')}
+                  onPress={() => navigation.navigate('SelfiePage')}
                 />
               </View>
             </View>
@@ -135,7 +101,7 @@ const ProgressPage = () => {
           <View style={styles.sector}>
             <Button
               title="Start"
-              onPress={() => navigation.navigate('Liveness')}
+              onPress={() => navigation.navigate('LivenessPage')}
             />
           </View>
         </View>
@@ -145,14 +111,19 @@ const ProgressPage = () => {
       const IdWidth =
         frontIdPicture &&
         IdHeight * (frontIdPicture.width / frontIdPicture.height);
-
-      const retakeIdFront = () => {
-        navigation.navigate('IDScannerView');
-      };
-
-      const submitIdFront = () => {
-        console.log('Submit picture');
-      };
+      if (frontIdOCR && frontIdOCR.length > 0) {
+        return (
+          <View style={styles.middleContainer}>
+            {frontIdOCR.map(item => (
+              <View style={styles.sector}>
+                <Text>
+                  {item.label} : {item.ocr_text}
+                </Text>
+              </View>
+            ))}
+          </View>
+        );
+      }
 
       return (
         <View style={styles.middleContainer}>
@@ -169,42 +140,26 @@ const ProgressPage = () => {
           ) : (
             <View style={styles.sector}>
               <Button
-                title="Use my camera"
-                onPress={() => navigation.navigate('IDScannerView')}
+                title="Scan your ID"
+                onPress={() => navigation.navigate('IDScanPage')}
               />
             </View>
           )}
-          <View
-            style={{
-              flex: 1,
-              alignItems: 'center',
-              justifyContent: 'flex-start',
-            }}>
-            <View>
-              {!selfieVerified && (
-                <Text style={styles.cautionFont}>
-                  No face detected, retake the picture
-                </Text>
-              )}
-            </View>
-            <View
-              style={{
-                flex: 1,
-                flexDirection: 'row',
-                justifyContent: 'space-between',
-                alignItems: 'flex-start',
-                alignSelf: 'stretch',
-                padding: 10,
-              }}>
-              <View>
-                <Button title="Retake picture" onPress={retakeIdFront} />
-              </View>
-              <View>
-                {frontIdPicture && (
-                  <Button title="Submit picture" onPress={submitIdFront} />
-                )}
-              </View>
-            </View>
+          <View style={styles.sector}>
+            {frontIdPicture && !frontIdPictureVerified && (
+              <Text style={styles.cautionFont}>
+                No face detected, retake the picture
+              </Text>
+            )}
+          </View>
+
+          <View style={styles.sector}>
+            {frontIdPicture && !frontIdPictureVerified && (
+              <Button
+                title="Retake picture"
+                onPress={() => navigation.navigate('IDScanPage')}
+              />
+            )}
           </View>
         </View>
       );
@@ -215,13 +170,7 @@ const ProgressPage = () => {
   return (
     <View style={styles.container}>
       {false ? (
-        <View
-          style={{
-            flex: 1,
-            flexDirection: 'row',
-            justifyContent: 'center',
-            alignItems: 'center',
-          }}>
+        <View style={styles.sector}>
           <ActivityIndicator size="large" />
         </View>
       ) : (

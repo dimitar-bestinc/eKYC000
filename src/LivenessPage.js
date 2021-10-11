@@ -4,7 +4,7 @@ import {StyleSheet, Text, View, Dimensions} from 'react-native';
 
 import {RNCamera} from 'react-native-camera';
 import {AnimatedCircularProgress} from 'react-native-circular-progress';
-import Svg, {Path, SvgProps} from 'react-native-svg';
+import Svg, {Path} from 'react-native-svg';
 import {useNavigation} from '@react-navigation/native';
 import {VerificationContext} from './context/VerificationContext';
 
@@ -56,7 +56,7 @@ function shuffle(array) {
     randomIndex;
 
   // While there remain elements to shuffle...
-  while (currentIndex != 0) {
+  while (currentIndex !== 0) {
     // Pick a remaining element...
     randomIndex = Math.floor(Math.random() * currentIndex);
     currentIndex--;
@@ -71,12 +71,13 @@ function shuffle(array) {
   return array;
 }
 
-const Liveness = () => {
+const LivenessPage = () => {
   const [Verification, setVerification] = useContext(VerificationContext);
   const navigation = useNavigation();
   const [state, dispatch] = useReducer(detectionReducer, initialState);
   const rollAngles = useRef([]);
   const rect = useRef(null);
+  let cameraRef = null;
 
   useEffect(() => {
     // randomize detection list to prevent pre-recorded video spoofing
@@ -94,6 +95,7 @@ const Liveness = () => {
   };
 
   const onFacesDetected = result => {
+    console.log('onfaceDetected called');
     if (result.faces.length !== 1) {
       dispatch({type: 'FACE_DETECTED', value: 'no'});
       return;
@@ -228,38 +230,9 @@ const Liveness = () => {
 
   return (
     <View style={styles.container}>
-      <View
-        style={{
-          position: 'absolute',
-          top: 0,
-          width: '100%',
-          height: PREVIEW_MARGIN_TOP,
-          backgroundColor: 'white',
-          zIndex: 10,
-        }}
-      />
-      <View
-        style={{
-          position: 'absolute',
-          top: PREVIEW_MARGIN_TOP,
-          left: 0,
-          width: (windowWidth - PREVIEW_SIZE) / 2,
-          height: PREVIEW_SIZE,
-          backgroundColor: 'white',
-          zIndex: 10,
-        }}
-      />
-      <View
-        style={{
-          position: 'absolute',
-          top: PREVIEW_MARGIN_TOP,
-          right: 0,
-          width: (windowWidth - PREVIEW_SIZE) / 2 + 1,
-          height: PREVIEW_SIZE,
-          backgroundColor: 'white',
-          zIndex: 10,
-        }}
-      />
+      <View style={styles.topMaskContainer} />
+      <View style={styles.leftMaskContainer} />
+      <View style={styles.rightMaskContainer} />
 
       <RNCamera
         ref={ref => {
@@ -395,6 +368,33 @@ const styles = StyleSheet.create({
     alignSelf: 'center',
   },
 
+  topMaskContainer: {
+    position: 'absolute',
+    top: 0,
+    width: '100%',
+    height: PREVIEW_MARGIN_TOP,
+    backgroundColor: 'white',
+    zIndex: 10,
+  },
+  leftMaskContainer: {
+    position: 'absolute',
+    top: PREVIEW_MARGIN_TOP,
+    left: 0,
+    width: (windowWidth - PREVIEW_SIZE) / 2,
+    height: PREVIEW_SIZE,
+    backgroundColor: 'white',
+    zIndex: 10,
+  },
+  rightMaskContainer: {
+    position: 'absolute',
+    top: PREVIEW_MARGIN_TOP,
+    right: 0,
+    width: (windowWidth - PREVIEW_SIZE) / 2 + 1,
+    height: PREVIEW_SIZE,
+    backgroundColor: 'white',
+    zIndex: 10,
+  },
+
   preview: {
     height: PREVIEW_SIZE,
   },
@@ -451,4 +451,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default Liveness;
+export default LivenessPage;

@@ -3,8 +3,7 @@ export const faceRecognitionService = {
   compare_faces,
 };
 
-const face_recognition_api_url =
-  'http://d745-96-27-135-242.ngrok.io/api/v1/detect_faces/';
+const face_recognition_api_url = 'http://d745-96-27-135-242.ngrok.io/api/v1/';
 
 async function detect_faces(picture_uri) {
   const formData = new FormData();

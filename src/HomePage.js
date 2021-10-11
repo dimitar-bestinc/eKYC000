@@ -5,7 +5,7 @@ import SafeAreaView from 'react-native-safe-area-view';
 import {TouchableOpacity} from 'react-native-gesture-handler';
 import SelfieSvg from './svg/SelfieSvg';
 
-const Home = () => {
+const HomePage = () => {
   const navigation = useNavigation();
   const startDetection = () => navigation.navigate('ProgressPage');
 
@@ -59,4 +59,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default Home;
+export default HomePage;

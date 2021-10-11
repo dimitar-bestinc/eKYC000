@@ -1,5 +1,5 @@
-import React from 'react';
-import {useContext, useState} from 'react';
+import React, {useRef} from 'react';
+import {useContext, useState, useEffect} from 'react';
 import {
   StyleSheet,
   Text,
@@ -34,16 +34,16 @@ const CircleMask = () => {
   );
 };
 
-const Selfie = () => {
+const SelfiePage = () => {
   const navigation = useNavigation();
   const [Verification, setVerification] = useContext(VerificationContext);
   const {currentStep} = Verification;
   const [isLoading, setIsLoading] = useState(false);
   console.log('Verification Selfie', currentStep);
-  let camera = null;
+  const cameraRef = useRef(null);
 
   const takePicture = async () => {
-    if (camera) {
+    if (cameraRef.current) {
       console.log('Take picture');
       const options = {
         fixOrientation: true,
@@ -54,7 +54,7 @@ const Selfie = () => {
         orientation: RNCamera.Constants.ORIENTATION_UP,
       };
 
-      return await camera.takePictureAsync(options);
+      return await cameraRef.current.takePictureAsync(options);
     }
   };
 
@@ -67,9 +67,9 @@ const Selfie = () => {
           .then(json => {
             console.log(json);
             const res = json;
-            if (res[0].coordinates.length === 0) {
+            if (res[0].coordinates.length > 0) {
               console.log('face detected');
-              navigation.navigate('Liveness');
+              navigation.navigate('LivenessPage');
               setVerification(prevVerification => {
                 return {
                   ...prevVerification,
@@ -80,7 +80,7 @@ const Selfie = () => {
               });
             } else {
               console.log('no face detected');
-              navigation.navigate('ProgressPage');
+              navigation.navigate('LivenessPage');
               setVerification(prevVerification => {
                 return {
                   ...prevVerification,
@@ -132,9 +132,7 @@ const Selfie = () => {
       ) : (
         <View style={styles.container}>
           <RNCamera
-            ref={ref => {
-              camera = ref;
-            }}
+            ref={cameraRef}
             style={styles.cameraPreview}
             androidCameraPermissionOptions={{
               title: 'Permission to use camera',
@@ -189,4 +187,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default Selfie;
+export default SelfiePage;
