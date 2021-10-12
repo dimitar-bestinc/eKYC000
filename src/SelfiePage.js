@@ -59,54 +59,42 @@ const SelfiePage = () => {
   };
 
   const checkSelfie = () => {
-    takePicture()
+    return takePicture()
       .then(data => {
         setIsLoading(true);
+        setVerification(prevVerification => {
+          return {
+            ...prevVerification,
+            currentStep: 1,
+            selfie: data,
+            selfieVerified: false,
+          };
+        });
         return faceRecognitionService
           .detect_faces(data.uri)
           .then(json => {
             console.log(json);
             const res = json;
-            if (res[0].coordinates.length > 0) {
+            if (res[0].coordinates.length === 0) {
               console.log('face detected');
-              navigation.navigate('LivenessPage');
               setVerification(prevVerification => {
                 return {
                   ...prevVerification,
-                  currentStep: 1,
-                  selfie: data,
                   selfieVerified: true,
                 };
               });
+              setIsLoading(false);
+              navigation.navigate('LivenessPage');
             } else {
               console.log('no face detected');
+              setIsLoading(false);
               navigation.navigate('ProgressPage');
-              setVerification(prevVerification => {
-                return {
-                  ...prevVerification,
-                  currentStep: 1,
-                  selfie: data,
-                  selfieVerified: false,
-                };
-              });
             }
-
-            return Promise.resolve();
           })
           .catch(e => {
             console.log(e);
-            navigation.navigate('ProgressPage');
-            setVerification(prevVerification => {
-              return {
-                ...prevVerification,
-                currentStep: 1,
-                selfie: data,
-                selfieVerified: false,
-              };
-            });
-          })
-          .finally(() => {
             setIsLoading(false);
+            navigation.navigate('ProgressPage');
           });
       })
       .catch(e => {
@@ -150,10 +138,10 @@ const SelfiePage = () => {
             flashMode={RNCamera.Constants.FlashMode.auto}
             captureAudio={false}>
             <CircleMask />
+            <Text style={styles.actionButton} onPress={checkSelfie}>
+              [CAPTURE]
+            </Text>
           </RNCamera>
-          <TouchableHighlight style={styles.actionButton} onPress={checkSelfie}>
-            <Text>Snap</Text>
-          </TouchableHighlight>
         </View>
       )}
     </>
@@ -167,17 +155,18 @@ const styles = StyleSheet.create({
   },
   cameraPreview: {
     flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   actionButton: {
     position: 'absolute',
-    bottom: 30,
-    padding: 20,
-    right: 20,
-    left: 20,
-    borderRadius: 20,
-    alignItems: 'center',
-    backgroundColor: 'blue',
-    flex: 1,
+    bottom: 50,
+    flex: 0,
+    backgroundColor: '#fff',
+    borderRadius: 5,
+    color: '#000',
+    padding: 10,
+    margin: 40,
   },
   activityContainer: {
     flex: 1,
