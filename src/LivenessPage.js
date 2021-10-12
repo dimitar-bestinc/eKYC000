@@ -77,7 +77,7 @@ const LivenessPage = () => {
   const [state, dispatch] = useReducer(detectionReducer, initialState);
   const rollAngles = useRef([]);
   const rect = useRef(null);
-  let cameraRef = null;
+  const cameraRef = useRef(null);
 
   useEffect(() => {
     // randomize detection list to prevent pre-recorded video spoofing
@@ -95,7 +95,6 @@ const LivenessPage = () => {
   };
 
   const onFacesDetected = result => {
-    console.log('onfaceDetected called');
     if (result.faces.length !== 1) {
       dispatch({type: 'FACE_DETECTED', value: 'no'});
       return;
@@ -235,9 +234,7 @@ const LivenessPage = () => {
       <View style={styles.rightMaskContainer} />
 
       <RNCamera
-        ref={ref => {
-          this.camera = ref;
-        }}
+        ref={cameraRef}
         style={styles.cameraPreview}
         type={RNCamera.Constants.Type.front}
         flashMode={RNCamera.Constants.FlashMode.auto}
