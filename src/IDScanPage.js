@@ -18,7 +18,7 @@ const IDScanPage = () => {
   const navigation = useNavigation();
   const [isLoading, setIsLoading] = useState(false);
   const [Verification, setVerification] = useContext(VerificationContext);
-  const {selfie, frontIdOCR} = Verification;
+  const {selfie} = Verification;
   const camera = useRef(null);
   const frameWidth = 300;
   const frameHeight = 300 * ratio.default;
@@ -39,81 +39,55 @@ const IDScanPage = () => {
     }
   };
 
-  const checkPicture = picture => {
-    takePicture()
-      .then(data => {
-        setIsLoading(true);
-        setVerification(prevVerification => {
-          return {
-            ...prevVerification,
-            frontIdPicture: data,
-          };
-        });
-
-        return faceRecognitionService
-          .detect_faces(data.uri)
-          .then(json => {
-            console.log(json);
-            console.log(json[0].coordinates);
-            if (json[0].coordinates.length > 0) {
-              console.log('face detected');
-
-              return faceRecognitionService
-                .compare_faces(selfie.uri, data.uri)
-                .then(json1 => {
-                  if (json1[0].result === 'True') {
-                    console.log('face matched');
-
-                    return ocrService
-                      .ocr_predict_id_card(data.uri)
-                      .then(json2 => {
-                        console.log('ocr result');
-                        if (
-                          json2.message === 'Success' &&
-                          json2.result[0].message === 'Success' &&
-                          json2.result[0].prediction.length > 0
-                        ) {
-                          console.log(
-                            'ocr success',
-                            json2.result[0].prediction[0],
-                          );
-                          setVerification(prevVerification => {
-                            return {
-                              ...prevVerification,
-                              frontIdOCR: json2.result[0].prediction,
-                            };
-                          });
-                          navigation.navigate('ProgressPage');
-                        }
-
-                        return Promise.resolve();
-                      })
-                      .catch(e => {
-                        console.log('ocr result error', e);
-                      });
-                  } else {
-                    console.log('face does not match');
-                    return Promise.resolve();
-                  }
-                })
-                .catch(e => {
-                  console.log('error comparing faces', e);
-                });
-            } else {
-              console.log('no face detected');
-              return Promise.resolve();
-            }
-          })
-          .catch(e => {
-            console.log('error detecting faces', e);
-          })
-          .finally(() => {
-            setIsLoading(false);
-          });
-      })
-      .catch(e => {
-        console.log('Could not take picture');
+  const checkPicture = async () => {
+    try {
+      const data = await takePicture();
+      setIsLoading(true);
+      setVerification(prevVerification => {
+        return {
+          ...prevVerification,
+          frontIdPicture: data,
+        };
       });
+      console.log('success id picture taken', data.uri);
+      const json = await faceRecognitionService.detect_faces(data.uri);
+      console.log('success calling detect faces api', json);
+      console.log('success calling detect faces api json[0]', json[0].coordinates);
+      if (json.length > 0 && json[0].coordinates.length > 0) {
+        console.log('start calling two faces', selfie.uri, data.uri);
+        const json1 = await faceRecognitionService.compare_faces(
+          selfie.uri,
+          data.uri,
+        );
+        console.log('success calling compare faces api, json1', json1, json1[0]);
+        if (json1.length > 0 && json1[0].result === 'True') {
+          console.log('success faces matched');
+          console.log('start calling nanonets api', data.uri);
+          const json2 = ocrService.ocr_predict_id_card(data.uri);
+          console.log('success calling nanonets api, json1', json2, json2.result, json2.result[0].prediction);
+          if (
+            json2.result.length > 0 &&
+            json2.message === 'Success' &&
+            json2.result[0].message === 'Success' &&
+            json2.result[0].prediction.length > 0
+          ) {
+            console.log('success nanonets api ocr success', json2.result[0].prediction, json2.result[0].prediction[0]);
+            setVerification(prevVerification => {
+              return {
+                ...prevVerification,
+                frontIdOCR: json2.result[0].prediction,
+              };
+            });
+            console.log('navigate to progress page');
+            setIsLoading(false);
+            navigation.navigate('ProgressPage');
+          }
+        }
+      }
+    } catch (error) {
+      setIsLoading(false);
+      console.log("Error handling promises", error);
+    }
   };
 
   return (

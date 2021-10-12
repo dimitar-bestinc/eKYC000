@@ -6,6 +6,7 @@ import {
   View,
   TouchableHighlight,
   ActivityIndicator,
+  Alert,
 } from 'react-native';
 
 import {RNCamera} from 'react-native-camera';
@@ -39,7 +40,6 @@ const SelfiePage = () => {
   const [Verification, setVerification] = useContext(VerificationContext);
   const {currentStep} = Verification;
   const [isLoading, setIsLoading] = useState(false);
-  console.log('Verification Selfie', currentStep);
   const cameraRef = useRef(null);
 
   const takePicture = async () => {
@@ -58,57 +58,43 @@ const SelfiePage = () => {
     }
   };
 
-  const checkSelfie = () => {
-    return takePicture()
-      .then(data => {
-        setIsLoading(true);
-        setVerification(prevVerification => {
-          return {
-            ...prevVerification,
-            currentStep: 1,
-            selfie: data,
-            selfieVerified: false,
-          };
-        });
-        return faceRecognitionService
-          .detect_faces(data.uri)
-          .then(json => {
-            console.log(json);
-            const res = json;
-            if (res[0].coordinates.length === 0) {
-              console.log('face detected');
-              setVerification(prevVerification => {
-                return {
-                  ...prevVerification,
-                  selfieVerified: true,
-                };
-              });
-              setIsLoading(false);
-              navigation.navigate('LivenessPage');
-            } else {
-              console.log('no face detected');
-              setIsLoading(false);
-              navigation.navigate('ProgressPage');
-            }
-          })
-          .catch(e => {
-            console.log(e);
-            setIsLoading(false);
-            navigation.navigate('ProgressPage');
-          });
-      })
-      .catch(e => {
-        console.log('Could not take picture');
-        navigation.navigate('ProgressPage');
-        setVerification(prevVerification => {
-          return {
-            ...prevVerification,
-            currentStep: 1,
-            selfie: null,
-            selfieVerified: false,
-          };
-        });
+  const checkSelfie = async () => {
+    try {
+      const data = await takePicture();
+      console.log("picture taken success", data.uri);
+      setVerification(prevVerification => {
+        return {
+          ...prevVerification,
+          currentStep: 1,
+          selfie: data,
+          selfieVerified: false,
+        };
       });
+      setIsLoading(true);
+      console.log("before calling detect faces");
+      const json = await faceRecognitionService.detect_faces(data.uri);
+      console.log("success detecting faces", json);
+      console.log("json[0].coordinates", json[0].coordinates);
+      if (json.length > 0 && json[0].coordinates.length > 0) {
+        console.log("face detected");
+        setVerification(prevVerification => {
+          return {
+            ...prevVerification,
+            selfieVerified: true,
+          };
+        });
+        setIsLoading(false);
+        navigation.navigate('LivenessPage');
+      } else {
+        console.log("face not detected");
+        setIsLoading(false);
+        navigation.navigate('ProgressPage');
+      }
+    } catch (error) {
+      setIsLoading(false);
+      console.log("Error: calling detect faces api", error);
+      navigation.navigate('ProgressPage');
+    }
   };
 
   return (
