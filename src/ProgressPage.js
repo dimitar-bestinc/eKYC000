@@ -26,6 +26,7 @@ const ProgressPage = () => {
   } = Verification;
 
   const renderMiddleContainer = () => {
+    console.log('current step', currentStep);
     if (currentStep === 0) {
       return (
         <View style={styles.middleContainer}>
@@ -163,6 +164,34 @@ const ProgressPage = () => {
           </View>
         </View>
       );
+    } else if (currentStep === 4) {
+      const selfieHeight = 200;
+      const selfieWidth =
+        selfie && selfieHeight * (selfie.width / selfie.height);
+      const idHeight = selfieHeight;
+      const idWidth =
+        frontIdPicture &&
+        idHeight * (frontIdPicture.width / frontIdPicture.height);
+      return (
+        <View style={styles.middleContainer}>
+          <View style={styles.sector}>
+            {selfie && (
+              <Image
+                source={{uri: selfie.uri, isStatic: true}}
+                style={{width: selfieWidth, height: selfieHeight}}
+              />
+            )}
+          </View>
+          <View style={styles.sector}>
+            {frontIdPicture && (
+              <Image
+                source={{uri: frontIdPicture.uri, isStatic: true}}
+                style={{width: idWidth, height: idHeight}}
+              />
+            )}
+          </View>
+        </View>
+      );
     } else {
     }
   };
@@ -198,6 +227,11 @@ const ProgressPage = () => {
               />
               <ProgressStep
                 label="Scan ID"
+                nextBtnTextStyle={styles.noDisplay}
+                previousBtnTextStyle={styles.noDisplay}
+              />
+              <ProgressStep
+                label="Show pictures"
                 nextBtnTextStyle={styles.noDisplay}
                 previousBtnTextStyle={styles.noDisplay}
               />

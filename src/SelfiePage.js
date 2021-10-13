@@ -61,7 +61,7 @@ const SelfiePage = () => {
   const checkSelfie = async () => {
     try {
       const data = await takePicture();
-      console.log("picture taken success", data.uri);
+      console.log('picture taken success', data.uri);
       setVerification(prevVerification => {
         return {
           ...prevVerification,
@@ -71,12 +71,12 @@ const SelfiePage = () => {
         };
       });
       setIsLoading(true);
-      console.log("before calling detect faces");
+      console.log('before calling detect faces');
       const json = await faceRecognitionService.detect_faces(data.uri);
-      console.log("success detecting faces", json);
-      console.log("json[0].coordinates", json[0].coordinates);
+      console.log('success detecting faces', json);
+      console.log('json[0].coordinates', json[0].coordinates);
       if (json.length > 0 && json[0].coordinates.length > 0) {
-        console.log("face detected");
+        console.log('face detected');
         setVerification(prevVerification => {
           return {
             ...prevVerification,
@@ -85,14 +85,23 @@ const SelfiePage = () => {
         });
         setIsLoading(false);
         navigation.navigate('LivenessPage');
+        // setVerification(prevVerification => {
+        //   return {
+        //     ...prevVerification,
+        //     currentStep: 3,
+        //     selfieVerified: true,
+        //   };
+        // });
+        // setIsLoading(false);
+        // navigation.navigate('ProgressPage');
       } else {
-        console.log("face not detected");
+        console.log('face not detected');
         setIsLoading(false);
         navigation.navigate('ProgressPage');
       }
     } catch (error) {
       setIsLoading(false);
-      console.log("Error: calling detect faces api", error);
+      console.log('Error: calling detect faces api', error);
       navigation.navigate('ProgressPage');
     }
   };
