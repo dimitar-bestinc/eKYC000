@@ -57,17 +57,13 @@ const IDScanPage = () => {
         json[0].coordinates,
       );
       if (json.length > 0 && json[0].coordinates.length > 0) {
-        console.log('start calling two faces', selfie.uri, data.uri);
+        console.log('start calling compare_faces api', selfie.uri, data.uri);
         const json1 = await faceRecognitionService.compare_faces(
           selfie.uri,
           data.uri,
         );
-        console.log(
-          'success calling compare faces api, json1',
-          json1,
-          json1[0],
-        );
-        if (json1.length > 0 && json1[0].result === 'True') {
+        console.log('success calling compare faces api, json1', json1);
+        if (json1.result.length > 0 && json1.result.includes(true)) {
           console.log('success faces matched');
           console.log('start calling nanonets api', data.uri);
           const json2 = ocrService.ocr_predict_id_card(data.uri);
