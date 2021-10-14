@@ -219,7 +219,7 @@ const LivenessPage = () => {
         setVerification(prevVerification => {
           return {
             ...prevVerification,
-            currentStep: 3,
+            currentStep: 2,
           };
         });
         navigation.navigate('ProgressPage');

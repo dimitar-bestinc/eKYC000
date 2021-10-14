@@ -18,7 +18,7 @@ const IDScanPage = () => {
   const navigation = useNavigation();
   const [isLoading, setIsLoading] = useState(false);
   const [Verification, setVerification] = useContext(VerificationContext);
-  const {selfie} = Verification;
+  const {selfie, frontIdError} = Verification;
   const camera = useRef(null);
   const frameWidth = 300;
   const frameHeight = 300 * ratio.default;
@@ -91,6 +91,8 @@ const IDScanPage = () => {
             setVerification(prevVerification => {
               return {
                 ...prevVerification,
+                currentStep: 3,
+                frontIdPictureVerified: true,
                 frontIdOCR: json2.result[0].prediction,
               };
             });
@@ -104,7 +106,7 @@ const IDScanPage = () => {
           setVerification(prevVerification => {
             return {
               ...prevVerification,
-              currentStep: 4,
+              frontIdError: 'Faces does not match',
             };
           });
           navigation.navigate('ProgressPage');
@@ -115,7 +117,7 @@ const IDScanPage = () => {
         setVerification(prevVerification => {
           return {
             ...prevVerification,
-            currentStep: 4,
+            frontIdError: 'Invalid face detected in your ID',
           };
         });
         navigation.navigate('ProgressPage');
@@ -126,7 +128,7 @@ const IDScanPage = () => {
       setVerification(prevVerification => {
         return {
           ...prevVerification,
-          currentStep: 4,
+          frontIdError: 'Something went wrong with the process',
         };
       });
       navigation.navigate('ProgressPage');

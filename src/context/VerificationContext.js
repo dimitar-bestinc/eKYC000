@@ -7,6 +7,7 @@ const initialState = {
   selfieVerified: false,
   frontIdPicture: null,
   frontIdPictureVerified: false,
+  frontIdError: '',
   frontIdOCR: null,
   backIdPicture: null,
 };

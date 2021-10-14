@@ -22,6 +22,7 @@ const ProgressPage = () => {
     currentStep,
     frontIdPicture,
     frontIdPictureVerified,
+    frontIdError,
     frontIdOCR,
   } = Verification;
 
@@ -94,37 +95,10 @@ const ProgressPage = () => {
         </View>
       );
     } else if (currentStep === 2) {
-      return (
-        <View style={styles.middleContainer}>
-          <View style={styles.sector}>
-            <Text style={styles.font22}>Do liveness check now</Text>
-          </View>
-          <View style={styles.sector}>
-            <Button
-              title="Start"
-              onPress={() => navigation.navigate('LivenessPage')}
-            />
-          </View>
-        </View>
-      );
-    } else if (currentStep === 3) {
       const IdHeight = 200;
       const IdWidth =
         frontIdPicture &&
         IdHeight * (frontIdPicture.width / frontIdPicture.height);
-      if (frontIdOCR && frontIdOCR.length > 0) {
-        return (
-          <View style={styles.middleContainer}>
-            {frontIdOCR.map(item => (
-              <View style={styles.sector}>
-                <Text>
-                  {item.label} : {item.ocr_text}
-                </Text>
-              </View>
-            ))}
-          </View>
-        );
-      }
 
       return (
         <View style={styles.middleContainer}>
@@ -148,9 +122,7 @@ const ProgressPage = () => {
           )}
           <View style={styles.sector}>
             {frontIdPicture && !frontIdPictureVerified && (
-              <Text style={styles.cautionFont}>
-                No face detected, retake the picture
-              </Text>
+              <Text style={styles.cautionFont}>{frontIdError}</Text>
             )}
           </View>
 
@@ -164,34 +136,20 @@ const ProgressPage = () => {
           </View>
         </View>
       );
-    } else if (currentStep === 4) {
-      const selfieHeight = 200;
-      const selfieWidth =
-        selfie && selfieHeight * (selfie.width / selfie.height);
-      const idHeight = selfieHeight;
-      const idWidth =
-        frontIdPicture &&
-        idHeight * (frontIdPicture.width / frontIdPicture.height);
-      return (
-        <View style={styles.middleContainer}>
-          <View style={styles.sector}>
-            {selfie && (
-              <Image
-                source={{uri: selfie.uri, isStatic: true}}
-                style={{width: selfieWidth, height: selfieHeight}}
-              />
-            )}
+    } else if (currentStep === 3) {
+      if (frontIdOCR && frontIdOCR.length > 0) {
+        return (
+          <View style={styles.middleContainer}>
+            {frontIdOCR.map(item => (
+              <View style={styles.sector}>
+                <Text>
+                  {item.label} : {item.ocr_text}
+                </Text>
+              </View>
+            ))}
           </View>
-          <View style={styles.sector}>
-            {frontIdPicture && (
-              <Image
-                source={{uri: frontIdPicture.uri, isStatic: true}}
-                style={{width: idWidth, height: idHeight}}
-              />
-            )}
-          </View>
-        </View>
-      );
+        );
+      }
     } else {
     }
   };
@@ -221,17 +179,12 @@ const ProgressPage = () => {
                 previousBtnTextStyle={styles.noDisplay}
               />
               <ProgressStep
-                label="Check Liveness"
-                nextBtnTextStyle={styles.noDisplay}
-                previousBtnTextStyle={styles.noDisplay}
-              />
-              <ProgressStep
                 label="Scan ID"
                 nextBtnTextStyle={styles.noDisplay}
                 previousBtnTextStyle={styles.noDisplay}
               />
               <ProgressStep
-                label="Show pictures"
+                label="OCR"
                 nextBtnTextStyle={styles.noDisplay}
                 previousBtnTextStyle={styles.noDisplay}
               />
