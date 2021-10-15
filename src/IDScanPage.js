@@ -67,12 +67,7 @@ const IDScanPage = () => {
           console.log('success faces matched');
           console.log('start calling nanonets api', data.uri);
           const json2 = ocrService.ocr_predict_id_card(data.uri);
-          console.log(
-            'success calling nanonets api, json1',
-            json2,
-            json2.result,
-            json2.result[0].prediction,
-          );
+          console.log('success calling nanonets api, json2', json2);
           if (
             json2.result.length > 0 &&
             json2.message === 'Success' &&
