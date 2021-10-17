@@ -28,10 +28,10 @@ const styles = StyleSheet.create({
     backgroundColor: '#f8f8f8',
   },
   title: {
-    fontSize: 40,
+    fontSize: 30,
     fontWeight: 'bold',
     alignSelf: 'center',
-    marginTop: 50,
+    marginTop: 80,
     color: '#1e293b',
     zIndex: 1,
   },

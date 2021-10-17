@@ -24,6 +24,7 @@ const ProgressPage = () => {
     frontIdPictureVerified,
     frontIdError,
     frontIdOCR,
+    nanonetsCount,
   } = Verification;
 
   const renderMiddleContainer = () => {
@@ -99,6 +100,18 @@ const ProgressPage = () => {
       const IdWidth =
         frontIdPicture &&
         IdHeight * (frontIdPicture.width / frontIdPicture.height);
+
+      // if (!nanonetsCount) {
+      //   return (
+      //     <View style={styles.middleContainer}>
+      //       <View style={styles.sector}>
+      //         <Text style={styles.font22}>
+      //           Try again tomorrow, your daily request count limited
+      //         </Text>
+      //       </View>
+      //     </View>
+      //   );
+      // }
 
       return (
         <View style={styles.middleContainer}>

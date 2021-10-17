@@ -18,7 +18,7 @@ const IDScanPage = () => {
   const navigation = useNavigation();
   const [isLoading, setIsLoading] = useState(false);
   const [Verification, setVerification] = useContext(VerificationContext);
-  const {selfie, frontIdError} = Verification;
+  const {selfie, nanonetsCount} = Verification;
   const camera = useRef(null);
   const frameWidth = 300;
   const frameHeight = 300 * ratio.default;
@@ -66,29 +66,49 @@ const IDScanPage = () => {
         if (json1.result.length > 0 && json1.result.includes(true)) {
           console.log('success faces matched');
           console.log('start calling nanonets api', data.uri);
-          const json2 = await ocrService.ocr_predict_id_card(data.uri);
-          console.log('success calling nanonets api, json2', json2);
-          if (
-            json2.result.length > 0 &&
-            json2.message === 'Success' &&
-            json2.result[0].message === 'Success' &&
-            json2.result[0].prediction.length > 0
-          ) {
-            console.log(
-              'success nanonets api ocr success',
-              json2.result[0].prediction,
-              json2.result[0].prediction[0],
-            );
+
+          if (nanonetsCount > 0) {
             setVerification(prevVerification => {
               return {
                 ...prevVerification,
-                currentStep: 3,
-                frontIdPictureVerified: true,
-                frontIdOCR: json2.result[0].prediction,
+                nanonetsCount: nanonetsCount - 1,
               };
             });
-            console.log('navigate to progress page');
+            const json2 = await ocrService.ocr_predict_id_card(data.uri);
+            console.log('success calling nanonets api, json2', json2);
+            if (
+              json2.result.length > 0 &&
+              json2.message === 'Success' &&
+              json2.result[0].message === 'Success' &&
+              json2.result[0].prediction.length > 0
+            ) {
+              console.log(
+                'success nanonets api ocr success',
+                json2.result[0].prediction,
+                json2.result[0].prediction[0],
+              );
+              setVerification(prevVerification => {
+                return {
+                  ...prevVerification,
+                  currentStep: 3,
+                  frontIdPictureVerified: true,
+                  frontIdOCR: json2.result[0].prediction,
+                };
+              });
+              console.log('navigate to progress page');
+              setIsLoading(false);
+              navigation.navigate('ProgressPage');
+            }
+          } else {
+            console.log('Maximum limit exceed for Nanonets API');
             setIsLoading(false);
+            setVerification(prevVerification => {
+              return {
+                ...prevVerification,
+                frontIdError: 'Maximum limit exceed for Nanonets API',
+                currentStep: 2,
+              };
+            });
             navigation.navigate('ProgressPage');
           }
         } else {
@@ -98,6 +118,7 @@ const IDScanPage = () => {
             return {
               ...prevVerification,
               frontIdError: 'Faces does not match',
+              currentStep: 2,
             };
           });
           navigation.navigate('ProgressPage');
@@ -109,6 +130,7 @@ const IDScanPage = () => {
           return {
             ...prevVerification,
             frontIdError: 'Invalid face detected in your ID',
+            currentStep: 2,
           };
         });
         navigation.navigate('ProgressPage');
@@ -120,6 +142,7 @@ const IDScanPage = () => {
         return {
           ...prevVerification,
           frontIdError: 'Something went wrong with the process',
+          currentStep: 2,
         };
       });
       navigation.navigate('ProgressPage');
