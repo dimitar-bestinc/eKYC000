@@ -31,14 +31,14 @@ const App = () => {
             options={{title: 'Liveness'}}
           />
           <Stack.Screen
-            name="ProgressPage"
-            component={ProgressPage}
-            options={{title: 'Progress'}}
-          />
-          <Stack.Screen
             name="IDScanPage"
             component={IDScanPage}
             options={{title: 'Scan ID'}}
+          />
+          <Stack.Screen
+            name="ProgressPage"
+            component={ProgressPage}
+            options={{title: 'Progress'}}
           />
         </Stack.Navigator>
       </NavigationContainer>

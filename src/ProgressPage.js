@@ -15,7 +15,7 @@ import {VerificationContext} from './context/VerificationContext';
 
 const ProgressPage = () => {
   const navigation = useNavigation();
-  const [Verification, setVerification] = useContext(VerificationContext);
+  const [Verification] = useContext(VerificationContext);
   const {
     selfie,
     selfieVerified,
@@ -24,7 +24,6 @@ const ProgressPage = () => {
     frontIdPictureVerified,
     frontIdError,
     frontIdOCR,
-    nanonetsCount,
   } = Verification;
 
   const renderMiddleContainer = () => {

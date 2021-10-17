@@ -1,13 +1,6 @@
 import React, {useRef} from 'react';
 import {useContext, useState} from 'react';
-import {
-  StyleSheet,
-  Text,
-  View,
-  TouchableHighlight,
-  ActivityIndicator,
-  Alert,
-} from 'react-native';
+import {StyleSheet, Text, View, ActivityIndicator} from 'react-native';
 
 import {RNCamera} from 'react-native-camera';
 import Svg, {Defs, Mask, Rect, Circle} from 'react-native-svg';
@@ -37,8 +30,7 @@ const CircleMask = () => {
 
 const SelfiePage = () => {
   const navigation = useNavigation();
-  const [Verification, setVerification] = useContext(VerificationContext);
-  const {currentStep} = Verification;
+  const [, setVerification] = useContext(VerificationContext);
   const [isLoading, setIsLoading] = useState(false);
   const cameraRef = useRef(null);
 

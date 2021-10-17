@@ -1,5 +1,12 @@
 import React, {useContext, useRef, useState} from 'react';
-import {Text, ActivityIndicator} from 'react-native';
+import {
+  Text,
+  ActivityIndicator,
+  Modal,
+  View,
+  Image,
+  Pressable,
+} from 'react-native';
 import SafeAreaView from 'react-native-safe-area-view';
 import {RNCamera} from 'react-native-camera';
 import BarcodeMask from 'react-native-barcode-mask';
@@ -22,6 +29,8 @@ const IDScanPage = () => {
   const camera = useRef(null);
   const frameWidth = 300;
   const frameHeight = 300 * ratio.default;
+  const [modalVisible, setModalVisible] = useState(false);
+  const [frontIdPicture, setFrontIdPicture] = useState(null);
 
   const takePicture = async () => {
     if (camera.current) {
@@ -39,33 +48,40 @@ const IDScanPage = () => {
     }
   };
 
-  const checkPicture = async () => {
+  const confirmPicture = async () => {
     try {
       const data = await takePicture();
-      setVerification(prevVerification => {
-        return {
-          ...prevVerification,
-          frontIdPicture: data,
-        };
-      });
-      setIsLoading(true);
+      setFrontIdPicture(data);
+      setModalVisible(true);
+    } catch (error) {}
+  };
 
-      const json = await faceRecognitionService.detect_faces(data.uri);
+  const checkPicture = async () => {
+    setModalVisible(false);
+    setIsLoading(true);
+    try {
+      const json = await faceRecognitionService.detect_faces(
+        frontIdPicture.uri,
+      );
       console.log('success calling detect faces api', json);
       console.log(
         'success calling detect faces api json[0]',
         json[0].coordinates,
       );
       if (json.length > 0 && json[0].coordinates.length > 0) {
-        console.log('start calling compare_faces api', selfie.uri, data.uri);
+        console.log(
+          'start calling compare_faces api',
+          selfie.uri,
+          frontIdPicture.uri,
+        );
         const json1 = await faceRecognitionService.compare_faces(
           selfie.uri,
-          data.uri,
+          frontIdPicture.uri,
         );
         console.log('success calling compare faces api, json1', json1);
         if (json1.result.length > 0 && json1.result.includes(true)) {
           console.log('success faces matched');
-          console.log('start calling nanonets api', data.uri);
+          console.log('start calling nanonets api', frontIdPicture.uri);
 
           if (nanonetsCount > 0) {
             setVerification(prevVerification => {
@@ -74,7 +90,9 @@ const IDScanPage = () => {
                 nanonetsCount: nanonetsCount - 1,
               };
             });
-            const json2 = await ocrService.ocr_predict_id_card(data.uri);
+            const json2 = await ocrService.ocr_predict_id_card(
+              frontIdPicture.uri,
+            );
             console.log('success calling nanonets api, json2', json2);
             if (
               json2.result.length > 0 &&
@@ -91,6 +109,7 @@ const IDScanPage = () => {
                 return {
                   ...prevVerification,
                   currentStep: 3,
+                  frontIdPicture,
                   frontIdPictureVerified: true,
                   frontIdOCR: json2.result[0].prediction,
                 };
@@ -105,6 +124,7 @@ const IDScanPage = () => {
             setVerification(prevVerification => {
               return {
                 ...prevVerification,
+                frontIdPicture,
                 frontIdError: 'Maximum limit exceed for Nanonets API',
                 currentStep: 2,
               };
@@ -117,6 +137,7 @@ const IDScanPage = () => {
           setVerification(prevVerification => {
             return {
               ...prevVerification,
+              frontIdPicture,
               frontIdError: 'Faces does not match',
               currentStep: 2,
             };
@@ -129,6 +150,7 @@ const IDScanPage = () => {
         setVerification(prevVerification => {
           return {
             ...prevVerification,
+            frontIdPicture,
             frontIdError: 'Invalid face detected in your ID',
             currentStep: 2,
           };
@@ -141,6 +163,7 @@ const IDScanPage = () => {
       setVerification(prevVerification => {
         return {
           ...prevVerification,
+          frontIdPicture,
           frontIdError: 'Something went wrong with the process',
           currentStep: 2,
         };
@@ -148,6 +171,10 @@ const IDScanPage = () => {
       navigation.navigate('ProgressPage');
     }
   };
+
+  const idHeight = 200;
+  const idWidth =
+    frontIdPicture && idHeight * (frontIdPicture.width / frontIdPicture.height);
 
   return (
     <>
@@ -191,12 +218,45 @@ const IDScanPage = () => {
               width={frameWidth}
               height={frameHeight}
             />
-            <Text style={styles.capture} onPress={checkPicture}>
+            <Text style={styles.capture} onPress={confirmPicture}>
               [CAPTURE]
             </Text>
           </RNCamera>
         </SafeAreaView>
       )}
+      <Modal
+        animationType="slide"
+        transparent={true}
+        visible={modalVisible}
+        onRequestClose={() => {
+          setModalVisible(!modalVisible);
+        }}>
+        <View style={styles.centeredView}>
+          <View style={styles.modalView}>
+            <Text style={styles.modalText}>
+              Are you sure all part of your ID card included?
+            </Text>
+            {frontIdPicture && (
+              <Image
+                source={{uri: frontIdPicture.uri, isStatic: true}}
+                style={{width: idWidth, height: idHeight}}
+              />
+            )}
+            <View style={styles.buttonsView}>
+              <Pressable
+                style={[styles.button, styles.buttonClose]}
+                onPress={() => setModalVisible(false)}>
+                <Text style={styles.textStyle}>Cancel</Text>
+              </Pressable>
+              <Pressable
+                style={[styles.button, styles.buttonOpen]}
+                onPress={checkPicture}>
+                <Text style={styles.textStyle}>Continue</Text>
+              </Pressable>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </>
   );
 };
@@ -279,6 +339,57 @@ const styles = {
     justifyContent: 'center',
     alignItems: 'center',
     zInex: 100,
+  },
+
+  centeredView: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginTop: 22,
+  },
+  modalView: {
+    margin: 20,
+    backgroundColor: 'white',
+    borderRadius: 20,
+    padding: 35,
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 4,
+    elevation: 5,
+  },
+  button: {
+    borderRadius: 20,
+    padding: 10,
+    elevation: 2,
+    marging: 30,
+  },
+  buttonOpen: {
+    backgroundColor: '#2196F3',
+  },
+  buttonClose: {
+    backgroundColor: '#2196F3',
+  },
+  textStyle: {
+    color: 'white',
+    fontWeight: 'bold',
+    textAlign: 'center',
+  },
+  modalText: {
+    marginBottom: 15,
+    textAlign: 'center',
+  },
+  buttonsView: {
+    alignSelf: 'stretch',
+    margin: 20,
+    flex: 0,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
   },
 };
 
