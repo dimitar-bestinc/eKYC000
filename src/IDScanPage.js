@@ -14,6 +14,7 @@ import {VerificationContext} from './context/VerificationContext';
 import {useNavigation} from '@react-navigation/native';
 import {ocrService} from './services/ocr_nanonets.service';
 import {faceRecognitionService} from './services/face_recognition.service';
+import ImageEditor from '@react-native-community/image-editor';
 
 const ratio = {
   passport: 0.8,
@@ -30,7 +31,8 @@ const IDScanPage = () => {
   const frameWidth = 300;
   const frameHeight = 300 * ratio.default;
   const [modalVisible, setModalVisible] = useState(false);
-  const [frontIdPicture, setFrontIdPicture] = useState(null);
+  const [frameLayout, setFrameLayout] = useState(null);
+  const [croppedImage, setCroppedImage] = useState(null);
 
   const takePicture = async () => {
     if (camera.current) {
@@ -51,8 +53,16 @@ const IDScanPage = () => {
   const confirmPicture = async () => {
     try {
       const data = await takePicture();
-      setFrontIdPicture(data);
-      setModalVisible(true);
+      const {x, y, width, height} = frameLayout;
+      const cropData = {
+        offset: {x, y},
+        size: {width, height},
+      };
+      ImageEditor.cropImage(data.uri, cropData).then(uri => {
+        console.log('Cropped image uri', uri);
+        setCroppedImage({uri, width, height});
+        setModalVisible(true);
+      });
     } catch (error) {}
   };
 
@@ -60,9 +70,7 @@ const IDScanPage = () => {
     setModalVisible(false);
     setIsLoading(true);
     try {
-      const json = await faceRecognitionService.detect_faces(
-        frontIdPicture.uri,
-      );
+      const json = await faceRecognitionService.detect_faces(croppedImage.uri);
       console.log('success calling detect faces api', json);
       console.log(
         'success calling detect faces api json[0]',
@@ -72,16 +80,16 @@ const IDScanPage = () => {
         console.log(
           'start calling compare_faces api',
           selfie.uri,
-          frontIdPicture.uri,
+          croppedImage.uri,
         );
         const json1 = await faceRecognitionService.compare_faces(
           selfie.uri,
-          frontIdPicture.uri,
+          croppedImage.uri,
         );
         console.log('success calling compare faces api, json1', json1);
         if (json1.result.length > 0 && json1.result.includes(true)) {
           console.log('success faces matched');
-          console.log('start calling nanonets api', frontIdPicture.uri);
+          console.log('start calling nanonets api', croppedImage.uri);
 
           if (nanonetsCount > 0) {
             setVerification(prevVerification => {
@@ -91,7 +99,7 @@ const IDScanPage = () => {
               };
             });
             const json2 = await ocrService.ocr_predict_id_card(
-              frontIdPicture.uri,
+              croppedImage.uri,
             );
             console.log('success calling nanonets api, json2', json2);
             if (
@@ -109,7 +117,7 @@ const IDScanPage = () => {
                 return {
                   ...prevVerification,
                   currentStep: 3,
-                  frontIdPicture,
+                  frontIdPicture: croppedImage,
                   frontIdPictureVerified: true,
                   frontIdOCR: json2.result[0].prediction,
                 };
@@ -124,7 +132,7 @@ const IDScanPage = () => {
             setVerification(prevVerification => {
               return {
                 ...prevVerification,
-                frontIdPicture,
+                frontIdPicture: croppedImage,
                 frontIdError: 'Maximum limit exceed for Nanonets API',
                 currentStep: 2,
               };
@@ -137,7 +145,7 @@ const IDScanPage = () => {
           setVerification(prevVerification => {
             return {
               ...prevVerification,
-              frontIdPicture,
+              frontIdPicture: croppedImage,
               frontIdError: 'Faces does not match',
               currentStep: 2,
             };
@@ -150,7 +158,7 @@ const IDScanPage = () => {
         setVerification(prevVerification => {
           return {
             ...prevVerification,
-            frontIdPicture,
+            frontIdPicture: croppedImage,
             frontIdError: 'Invalid face detected in your ID',
             currentStep: 2,
           };
@@ -163,7 +171,7 @@ const IDScanPage = () => {
       setVerification(prevVerification => {
         return {
           ...prevVerification,
-          frontIdPicture,
+          frontIdPicture: croppedImage,
           frontIdError: 'Something went wrong with the process',
           currentStep: 2,
         };
@@ -172,9 +180,11 @@ const IDScanPage = () => {
     }
   };
 
-  const idHeight = 200;
-  const idWidth =
-    frontIdPicture && idHeight * (frontIdPicture.width / frontIdPicture.height);
+  const onLayoutMeasured = e => {
+    console.log('measuredlayout', e);
+    setFrameLayout(e.nativeEvent.layout);
+  };
+  console.log(frameLayout);
 
   return (
     <>
@@ -217,6 +227,7 @@ const IDScanPage = () => {
               outerMaskOpacity={0.8}
               width={frameWidth}
               height={frameHeight}
+              onLayoutMeasured={onLayoutMeasured}
             />
             <Text style={styles.capture} onPress={confirmPicture}>
               [CAPTURE]
@@ -236,10 +247,10 @@ const IDScanPage = () => {
             <Text style={styles.modalText}>
               Are you sure all part of your ID card included?
             </Text>
-            {frontIdPicture && (
+            {croppedImage && (
               <Image
-                source={{uri: frontIdPicture.uri, isStatic: true}}
-                style={{width: idWidth, height: idHeight}}
+                source={{uri: croppedImage.uri, isStatic: true}}
+                style={{width: croppedImage.width, height: croppedImage.height}}
               />
             )}
             <View style={styles.buttonsView}>

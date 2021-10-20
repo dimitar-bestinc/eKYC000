@@ -229,7 +229,6 @@ const LivenessPage = () => {
   }, [navigation, setVerification, state.processComplete]);
 
   const renderCamera = () => {
-    console.log('focused isActive', isActive);
     if (isActive) {
       return (
         <RNCamera
