@@ -9,9 +9,10 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import {ProgressSteps, ProgressStep} from 'react-native-progress-steps';
-import SelfieSvg from './svg/SelfieSvg';
 import {useNavigation} from '@react-navigation/native';
+
 import {VerificationContext} from './context/VerificationContext';
+import SelfieSvg from './svg/SelfieSvg';
 
 const ProgressPage = () => {
   const navigation = useNavigation();

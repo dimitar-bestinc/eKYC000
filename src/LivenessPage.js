@@ -1,11 +1,11 @@
 import React from 'react';
 import {useEffect, useReducer, useRef, useContext} from 'react';
 import {StyleSheet, Text, View, Dimensions} from 'react-native';
-
 import {RNCamera} from 'react-native-camera';
 import {AnimatedCircularProgress} from 'react-native-circular-progress';
 import Svg, {Path} from 'react-native-svg';
 import {useNavigation} from '@react-navigation/native';
+
 import {VerificationContext} from './context/VerificationContext';
 
 const {width: windowWidth} = Dimensions.get('window');
@@ -14,12 +14,6 @@ const PREVIEW_MARGIN_TOP = 50;
 const PREVIEW_SIZE = Math.floor(windowWidth - 20);
 
 // const PREVIEW_SIZE = 325
-const PREVIEW_RECT = {
-  minX: (windowWidth - PREVIEW_SIZE) / 2,
-  minY: 50,
-  width: PREVIEW_SIZE,
-  height: PREVIEW_SIZE,
-};
 
 const detections = {
   BLINK: {promptText: 'Blink both eyes', minProbability: 0.4},
@@ -77,23 +71,12 @@ const LivenessPage = () => {
   const isActive = navigation.isFocused();
   const [state, dispatch] = useReducer(detectionReducer, initialState);
   const rollAngles = useRef([]);
-  const rect = useRef(null);
   const cameraRef = useRef(null);
 
   useEffect(() => {
     // randomize detection list to prevent pre-recorded video spoofing
     shuffle(detectionsList);
   }, []);
-
-  const drawFaceRect = face => {
-    // console.log("face",face)
-    rect.current?.setNativeProps({
-      width: 100,
-      height: 100,
-      top: face.bounds.origin.y,
-      left: face.bounds.origin.x,
-    });
-  };
 
   const onFacesDetected = result => {
     if (result.faces.length !== 1) {
@@ -107,7 +90,6 @@ const LivenessPage = () => {
     const midFaceOffsetY = face.bounds.size.height / 2;
     const midFaceOffsetX = face.bounds.size.width / 2;
 
-    drawFaceRect(face);
     // make sure face is centered
     const faceMidYPoint = face.bounds.origin.y + midFaceOffsetY;
     // console.log(`
@@ -134,8 +116,6 @@ const LivenessPage = () => {
       dispatch({type: 'FACE_DETECTED', value: 'no'});
       return;
     }
-
-    // drawFaceRect(face)
 
     if (!state.faceDetected) {
       dispatch({type: 'FACE_DETECTED', value: 'yes'});

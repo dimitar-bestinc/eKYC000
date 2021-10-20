@@ -1,10 +1,10 @@
 import React, {useRef} from 'react';
 import {useContext, useState} from 'react';
 import {StyleSheet, Text, View, ActivityIndicator} from 'react-native';
-
 import {RNCamera} from 'react-native-camera';
 import Svg, {Defs, Mask, Rect, Circle} from 'react-native-svg';
 import {useNavigation} from '@react-navigation/native';
+
 import {VerificationContext} from './context/VerificationContext';
 import {faceRecognitionService} from './services/face_recognition.service';
 

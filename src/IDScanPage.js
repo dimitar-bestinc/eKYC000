@@ -10,11 +10,12 @@ import {
 import SafeAreaView from 'react-native-safe-area-view';
 import {RNCamera} from 'react-native-camera';
 import BarcodeMask from 'react-native-barcode-mask';
-import {VerificationContext} from './context/VerificationContext';
+import ImageEditor from '@react-native-community/image-editor';
 import {useNavigation} from '@react-navigation/native';
+
+import {VerificationContext} from './context/VerificationContext';
 import {ocrService} from './services/ocr_nanonets.service';
 import {faceRecognitionService} from './services/face_recognition.service';
-import ImageEditor from '@react-native-community/image-editor';
 
 const ratio = {
   passport: 0.8,
