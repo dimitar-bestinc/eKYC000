@@ -72,8 +72,9 @@ function shuffle(array) {
 }
 
 const LivenessPage = () => {
-  const [Verification, setVerification] = useContext(VerificationContext);
+  const [, setVerification] = useContext(VerificationContext);
   const navigation = useNavigation();
+  const isActive = navigation.isFocused();
   const [state, dispatch] = useReducer(detectionReducer, initialState);
   const rollAngles = useRef([]);
   const rect = useRef(null);
@@ -227,35 +228,60 @@ const LivenessPage = () => {
     }
   }, [navigation, setVerification, state.processComplete]);
 
+  const renderCamera = () => {
+    console.log('focused isActive', isActive);
+    if (isActive) {
+      return (
+        <RNCamera
+          ref={cameraRef}
+          androidCameraPermissionOptions={{
+            title: 'Permission to use camera',
+            message: 'We need your permission to use your camera',
+            buttonPositive: 'Ok',
+            buttonNegative: 'Cancel',
+          }}
+          androidRecordAudioPermissionOptions={{
+            title: 'Permission to use audio recording',
+            message: 'We need your permission to use your audio',
+            buttonPositive: 'Ok',
+            buttonNegative: 'Cancel',
+          }}
+          style={styles.cameraPreview}
+          type={RNCamera.Constants.Type.front}
+          flashMode={RNCamera.Constants.FlashMode.auto}
+          captureAudio={false}
+          onFacesDetected={onFacesDetected}
+          faceDetectionMode={RNCamera.Constants.FaceDetection.Mode.fast}
+          faceDetectionLandmarks={
+            RNCamera.Constants.FaceDetection.Landmarks.none
+          }
+          faceDetectionClassifications={
+            RNCamera.Constants.FaceDetection.Classifications.all
+          }>
+          <CameraPreviewMask width={'100%'} style={styles.circularProgress} />
+          <AnimatedCircularProgress
+            style={styles.circularProgress}
+            size={PREVIEW_SIZE}
+            width={5}
+            backgroundWidth={7}
+            tintColor="#3485FF"
+            backgroundColor="#e8e8e8"
+            fill={state.progressFill}
+          />
+        </RNCamera>
+      );
+    } else {
+      return null;
+    }
+  };
+
   return (
     <View style={styles.container}>
       <View style={styles.topMaskContainer} />
       <View style={styles.leftMaskContainer} />
       <View style={styles.rightMaskContainer} />
 
-      <RNCamera
-        ref={cameraRef}
-        style={styles.cameraPreview}
-        type={RNCamera.Constants.Type.front}
-        flashMode={RNCamera.Constants.FlashMode.auto}
-        captureAudio={false}
-        onFacesDetected={onFacesDetected}
-        faceDetectionMode={RNCamera.Constants.FaceDetection.Mode.fast}
-        faceDetectionLandmarks={RNCamera.Constants.FaceDetection.Landmarks.none}
-        faceDetectionClassifications={
-          RNCamera.Constants.FaceDetection.Classifications.all
-        }>
-        <CameraPreviewMask width={'100%'} style={styles.circularProgress} />
-        <AnimatedCircularProgress
-          style={styles.circularProgress}
-          size={PREVIEW_SIZE}
-          width={5}
-          backgroundWidth={7}
-          tintColor="#3485FF"
-          backgroundColor="#e8e8e8"
-          fill={state.progressFill}
-        />
-      </RNCamera>
+      {renderCamera()}
 
       <View style={styles.promptContainer}>
         <View>
