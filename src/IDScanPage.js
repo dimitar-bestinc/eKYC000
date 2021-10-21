@@ -6,6 +6,8 @@ import {
   View,
   Image,
   Pressable,
+  PixelRatio,
+  Dimensions,
 } from 'react-native';
 import SafeAreaView from 'react-native-safe-area-view';
 import {RNCamera} from 'react-native-camera';
@@ -54,17 +56,39 @@ const IDScanPage = () => {
   const confirmPicture = async () => {
     try {
       const data = await takePicture();
+      console.log(
+        'picture taken, uri, width, height',
+        data.uri,
+        data.width,
+        data.height,
+      );
+      let imageHeight = PixelRatio.getPixelSizeForLayoutSize(data.height);
+      let imageWidth = PixelRatio.getPixelSizeForLayoutSize(data.width);
+      console.log('pixel size', imageHeight, imageWidth);
       const {x, y, width, height} = frameLayout;
+      const _x = PixelRatio.getPixelSizeForLayoutSize(x);
+      const _y = PixelRatio.getPixelSizeForLayoutSize(y);
+      const _width = PixelRatio.getPixelSizeForLayoutSize(width);
+      const _height = PixelRatio.getPixelSizeForLayoutSize(height);
+      console.log('pixelratio:', PixelRatio.get());
+      console.log('x  y width height', x, y, width, height);
+      console.log('---x  y width height', _x, _y, _width, _height);
       const cropData = {
-        offset: {x, y},
-        size: {width, height},
+        offset: {x: _x, y: _y},
+        size: {width: _width, height: _height},
       };
-      ImageEditor.cropImage(data.uri, cropData).then(uri => {
-        console.log('Cropped image uri', uri);
-        setCroppedImage({uri, width, height});
-        setModalVisible(true);
-      });
-    } catch (error) {}
+      ImageEditor.cropImage(data.uri, cropData)
+        .then(uri => {
+          console.log('Cropped image uri', uri);
+          setCroppedImage({uri, width, height});
+          setModalVisible(true);
+        })
+        .catch(error => {
+          console.log('cropimage error', error);
+        });
+    } catch (error) {
+      console.log('error', error);
+    }
   };
 
   const checkPicture = async () => {

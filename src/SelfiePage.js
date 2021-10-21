@@ -1,5 +1,5 @@
 import React, {useRef} from 'react';
-import {useContext, useState} from 'react';
+import {useContext, useState, useEffect} from 'react';
 import {StyleSheet, Text, View, ActivityIndicator} from 'react-native';
 import {RNCamera} from 'react-native-camera';
 import Svg, {Defs, Mask, Rect, Circle} from 'react-native-svg';
@@ -33,6 +33,12 @@ const SelfiePage = () => {
   const [, setVerification] = useContext(VerificationContext);
   const [isLoading, setIsLoading] = useState(false);
   const cameraRef = useRef(null);
+
+  useEffect(() => {
+    return function cleanup() {
+      cameraRef.current = null;
+    };
+  }, []);
 
   const takePicture = async () => {
     if (cameraRef.current) {
